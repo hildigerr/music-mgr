@@ -13,7 +13,7 @@
 # Add option to convert without asking.
 # Convert to ogg instead or also or as requested or whatever.
 # Move converted wav files to workdir/old/wav or something like that.
-# Make an option which will just clean up workdir.
+# Make an option which will perform actions and clean up workdir.
 
 usage() { echo "Usage: $0 [-v] [-s <source directory>] [-t <target directory>]" 1>&2; exit 1; }
 nodir() { echo "ERROR: $1 does not exist or is not a directory." 1>&2; exit 2; }
@@ -29,6 +29,7 @@ while getopts ":s:t:v" o; do
 done
 shift $((OPTIND-1))
 workdir="${HOME}/.config/collect_music"
+actsh="${workdir}/actions.sh"
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
@@ -52,6 +53,7 @@ fi
 if [ ! -d "${workdir}" ] ; then
     mkdir -vp "${workdir}"
 fi
+echo "#!/bin/bash" > "${actsh}"
 
 # A temporary file is used to list all files in the source directory.
 find "${srcdir}" -type f > ${workdir}/origin.list && echo
@@ -125,8 +127,10 @@ while read -r line || [[ -n ${line} ]]; do
     ### Setup Destination Directory Structure ###
     destdir="${dest}/${artist}/${album}"
     echo "destination = ${destdir}"
-#     if [ ! -d "${destdir}" ] ; then
-#         mkdir -vp "${destdir}"
-#     fi
+    if [ ! -d "${destdir}" ] ; then
+        echo "mkdir -vp \"${destdir}\"" >> "${actsh}"
+    fi
+
+    echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
 
 done < ${workdir}/origin.list
