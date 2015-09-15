@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### Dependencies: mediainfo, lame
+### Dependencies: mediainfo
 
 ### Exit Status Table ###
 # 0 == Success
@@ -10,9 +10,6 @@
 ### TODO:
 # Write/update tags including arbitrary tag fields.
 # Add auto yes iscorrect option.
-# Add option to convert without asking.
-# Convert to ogg instead or also or as requested or whatever.
-# Move converted wav files to workdir/old/wav or something like that.
 # Make an option which will perform actions and clean up workdir.
 
 usage() { echo "Usage: $0 [-v] [-s <source directory>] [-t <target directory>]" 1>&2; exit 1; }
@@ -68,10 +65,6 @@ while read -r line || [[ -n ${line} ]]; do
     ### Retrieve Media Tag Data ###
     if [ "${format}" = "Wave" ] ; then
         title=`basename "${line}" .wav`
-        read -s -n 1 -p "Do you want to convert \"${line}\" to MP3 (y/n)? " doconvert < /dev/tty && echo #skip it if it has already been done
-        if [ "${doconvert}" = 'y' ] || [ "${doconvert}" = 'Y' ] ; then
-            lame -h -b128 "${line}" "${title}.mp3" && line="${title}.mp3"
-        fi
     elif [ "${format}" = "MPEG Audio" ] || [ "${format}" = "OGG" ] ; then
         title=`grep -m 1 "Track name " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         artist=`grep -m 1 "Performer" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
