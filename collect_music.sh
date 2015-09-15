@@ -72,10 +72,15 @@ while read -r line || [[ -n ${line} ]]; do
         if [ "${doconvert}" = 'y' ] || [ "${doconvert}" = 'Y' ] ; then
             lame -h -b128 "${line}" "${title}.mp3" && line="${title}.mp3"
         fi
-    else
+    elif [ "${format}" = "MPEG Audio" ] || [ "${format}" = "OGG" ] ; then
         title=`grep -m 1 "Track name " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         artist=`grep -m 1 "Performer" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         album=`grep -m 1 "Album" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+    else
+        if ${verbose} ; then
+            echo "[Unsupported file type, skipping...]"
+        fi
+        continue
     fi
 
     ### Verify Title ###
