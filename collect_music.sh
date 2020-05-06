@@ -1,13 +1,13 @@
 #!/bin/bash
 
-### Dependencies: mediainfo, id3v2, [vorbis-tools (ogginfo,vorbiscomment)]?
+### Dependencies: id3v2
 
 ### Exit Status Table ###
 # 0 == Success
 # 1 == Invalid Parameter Flag
 
 ### TODO:
-# Write/update ogg tags.
+# Write/update ogg tags with vorbis-tools (ogginfo,vorbiscomment)
 # Edit arbitrary tag fields.
 # Add auto yes iscorrect option.
 
@@ -54,17 +54,18 @@ for line in "$@"; do
 
     ### Get Basic File Data ###
     filename=`basename "${line}"`
-    data=`mediainfo "${line}"`
-    format=`grep -m 1 "Format" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+    format=`echo "${filename}" | tr . \\\n | tail -n1 | tr "[:lower:]" "[:upper:]"`
 
     ### Retrieve Media Tag Data ###
-    if [ "${format}" = "Wave" ] ; then
+    if [ "${format}" = "WAV" ] ; then
         title=`basename "${line}" .wav`
-    elif [ "${format}" = "MPEG Audio" ] || [ "${format}" = "OGG" ] ; then
-        id3v2 -l "${line}"
-        title=`grep -m 1 "^Track name " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
-        artist=`grep -m 1 "^Album/Performer" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
-        album=`grep -m 1 "^Album" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+        title=`basename "${title}" .WAV`
+    elif [ "${format}" = "MP3" ] ; then
+        data=`id3v2 -l "${line}"`
+        title=`grep -m 1 "^TIT2 " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+        artist=`grep -m 1 "^TPE1" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+        album=`grep -m 1 "^TALB" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+        genre=`grep -m 1 "^TCON" <<<"${data}" | cut -d: -f 2- | cut -d\  -f 2`
     else
         if ${verbose} ; then
             echo "[Unsupported file type, skipping...]"
@@ -76,6 +77,7 @@ for line in "$@"; do
     echo "title = ${title}"
     echo "artist = ${artist}"
     echo "album = ${album}"
+    echo "genre = ${genre}"
     askyn "Do you trust this file to be tagged correctly" tagok
     if [ "${tagok}" = 'y' ] || [ "${tagok}" = 'Y' ] ; then
         verifytag=false
@@ -112,7 +114,7 @@ for line in "$@"; do
             fi
         done
     fi
-    if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
+    if [ "${format}" = "MP3" ] && [ ! ${pretagged} ] ; then
         echo "id3v2 -t \"${title}\" \"${line}\"" >> "${actsh}"
     fi
 
@@ -146,7 +148,7 @@ for line in "$@"; do
             fi
         done
     fi
-    if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
+    if [ "${format}" = "MP3" ] && [ ! ${pretagged} ] ; then
         echo "id3v2 -a \"${artist}\" \"${line}\"" >> "${actsh}"
     fi
 
@@ -173,7 +175,7 @@ for line in "$@"; do
             fi
         done
     fi
-    if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
+    if [ "${format}" = "MP3" ] && [ ! ${pretagged} ] ; then
         echo "id3v2 -A \"${album}\" \"${line}\"" >> "${actsh}"
     fi
 
