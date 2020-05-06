@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### Dependencies: mediainfo, id3 or id3tool, [vorbis-tools (ogginfo,vorbiscomment)]?
+### Dependencies: mediainfo, id3v2, [vorbis-tools (ogginfo,vorbiscomment)]?
 
 ### Exit Status Table ###
 # 0 == Success
@@ -61,7 +61,7 @@ for line in "$@"; do
     if [ "${format}" = "Wave" ] ; then
         title=`basename "${line}" .wav`
     elif [ "${format}" = "MPEG Audio" ] || [ "${format}" = "OGG" ] ; then
-        id3 -l "${line}" #XXX mediainfo doesn't show id3's tag changes XXX
+        id3v2 -l "${line}"
         title=`grep -m 1 "^Track name " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         artist=`grep -m 1 "^Album/Performer" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         album=`grep -m 1 "^Album" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
@@ -113,7 +113,7 @@ for line in "$@"; do
         done
     fi
     if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
-        echo "id3 -t \"${title}\" \"${line}\"" >> "${actsh}"
+        echo "id3v2 -t \"${title}\" \"${line}\"" >> "${actsh}"
     fi
 
     ### Verify Artist ###
@@ -147,7 +147,7 @@ for line in "$@"; do
         done
     fi
     if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
-        echo "id3 -a \"${artist}\" \"${line}\"" >> "${actsh}"
+        echo "id3v2 -a \"${artist}\" \"${line}\"" >> "${actsh}"
     fi
 
     ### Verify Album ###
@@ -174,7 +174,7 @@ for line in "$@"; do
         done
     fi
     if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
-        echo "id3 -A \"${album}\" \"${line}\"" >> "${actsh}"
+        echo "id3v2 -A \"${album}\" \"${line}\"" >> "${actsh}"
     fi
 
     if ${verbose} ; then
