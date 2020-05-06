@@ -13,6 +13,7 @@
 # Edit arbitrary tag fields.
 # Add auto yes iscorrect option.
 
+askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
 usage() { echo "Usage: $0 [-vc] [-s <source directory>] [-t <target directory>]" 1>&2; exit 1; }
 nodir() { echo "ERROR: $1 does not exist or is not a directory." 1>&2; exit 2; }
 
@@ -112,11 +113,11 @@ while read -r line || [[ -n ${line} ]]; do
     echo "title = ${title}"
     echo "artist = ${artist}"
     echo "album = ${album}"
-    read -s -n 1 -p "Do you trust this file to be tagged correctly (y/n)? " tagok < /dev/tty && echo
+    askyn "Do you trust this file to be tagged correctly" tagok
     if [ "${tagok}" = 'y' ] || [ "${tagok}" = 'Y' ] ; then
         verifytag=false
     else
-        read -s -n 1 -p "Is the problem that the album artist should be \"Various Artists\" (y/n)? " quickfix < /dev/tty && echo
+        askyn "Is the problem that the album artist should be \"Various Artists\"" quickfix
         if [ "${quickfix}" = 'y' ] || [ "${quickfix}" = 'Y' ] ; then
             artist="Various Artists"
             verifytag=false
@@ -134,12 +135,12 @@ while read -r line || [[ -n ${line} ]]; do
     fi
     if [ ${verifytag} = true ] ; then
         while true ; do
-            read -s -n 1 -p "Is \"${title}\" the correct song title (y/n)? " iscorrect < /dev/tty && echo
+            askyn "Is \"${title}\" the correct song title" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
             else
                 if ${pretagged} ; then
-                    read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
+                    askyn "Do you wish to overwrite the current tag infomration" retagging
                     if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
                         pretagged=false
                     fi
@@ -168,12 +169,12 @@ while read -r line || [[ -n ${line} ]]; do
     fi
     if [ ${verifytag} = true ] ; then
         while true ; do
-            read -s -n 1 -p "Is \"${artist}\" the correct album artist (y/n)? " iscorrect < /dev/tty && echo
+            askyn "Is \"${artist}\" the correct album artist" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
             else
                 if ${pretagged} ; then
-                    read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
+                    askyn "Do you wish to overwrite the current tag infomration" retagging
                     if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
                         pretagged=false
                     fi
@@ -195,12 +196,12 @@ while read -r line || [[ -n ${line} ]]; do
     fi
     if [ ${verifytag} = true ] ; then
         while true ; do
-            read -s -n 1 -p "Is \"${album}\" the correct album name (y/n)? " iscorrect < /dev/tty && echo
+            askyn "Is \"${album}\" the correct album name" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
             else
                 if ${pretagged} ; then
-                    read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
+                    askyn "Do you wish to overwrite the current tag infomration" retagging
                     if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
                         pretagged=false
                     fi
@@ -231,7 +232,7 @@ while read -r line || [[ -n ${line} ]]; do
     if [ ! -e "${destdir}/${filename}" ] ; then
         echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
     else
-        read -s -n 1 -p "Do you wish to overwrite the existing file (y/n)? " replace < /dev/tty && echo
+        askyn "Do you wish to overwrite the existing file" replace
         if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
             echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
         fi
