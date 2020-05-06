@@ -13,13 +13,12 @@
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-v] [-s <source directory>] [-t <target directory>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-v] [-t <target directory>] FILE..." 1>&2; exit 1; }
 nodir() { echo "ERROR: $1 does not exist or is not a directory." 1>&2; exit 2; }
 
 ### Variables ###
-while getopts ":s:t:v" o; do
+while getopts ":t:v" o; do
     case "${o}" in
-        s) srcdir=${OPTARG} ;;
         t) dest=${OPTARG} ;;
         v) verbose=true ;;
         *) usage ;;
@@ -31,11 +30,6 @@ actsh="${workdir}/actions.sh"
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
-if [ -z "${srcdir}" ] ; then
-    srcdir="`pwd`"
-elif [ ! -d "${srcdir}" ] ; then
-    nodir ${srcdir}
-fi
 if [ -z "${dest}" ] ; then
     dest="${HOME}/Music"
 elif [ ! -d "${dest}" ] ; then
@@ -43,7 +37,6 @@ elif [ ! -d "${dest}" ] ; then
 fi
 
 if ${verbose} ; then
-    echo "srcdir = ${srcdir}"
     echo "dest = ${dest}"
     echo "workdir = ${workdir}"
 fi
@@ -62,9 +55,7 @@ else
     echo "### Resume from here:" >> "${actsh}"
 fi
 
-# A temporary file is used to list all files in the source directory.
-find "${srcdir}" -type f > ${workdir}/origin.list && echo
-while read -r line || [[ -n ${line} ]]; do
+for line in "$@"; do
     echo -e "\nFile: ${line}"
 
     ### Get Basic File Data ###
@@ -216,7 +207,7 @@ while read -r line || [[ -n ${line} ]]; do
         fi
     fi
 
-done < ${workdir}/origin.list
+done
 
 echo "find \"${srcdir}\" -depth -type d -empty -exec rmdir {} \;" >> "${actsh}"
 echo "Review and then execute \"${actsh}\""
