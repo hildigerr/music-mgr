@@ -5,7 +5,6 @@
 ### Exit Status Table ###
 # 0 == Success
 # 1 == Invalid Parameter Flag
-# 2 == Missing Directory
 
 ### TODO:
 # Write/update ogg tags.
@@ -14,7 +13,6 @@
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
 usage() { echo "Usage: $0 [-v] [-t <target directory>] FILE..." 1>&2; exit 1; }
-nodir() { echo "ERROR: $1 does not exist or is not a directory." 1>&2; exit 2; }
 
 ### Variables ###
 while getopts ":t:v" o; do
@@ -30,11 +28,7 @@ actsh="${workdir}/actions.sh"
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
-if [ -z "${dest}" ] ; then
-    dest="${HOME}/Music"
-elif [ ! -d "${dest}" ] ; then
-    nodir ${dest} #Or should we mkdir?
-fi
+if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
 
 if ${verbose} ; then
     echo "dest = ${dest}"
