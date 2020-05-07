@@ -1,13 +1,12 @@
 #!/bin/bash
 
-### Dependencies: id3v2
+### Dependencies: id3v2, vorbis-tools (vorbiscomment)
 
 ### Exit Status Table ###
 # 0 == Success
 # 1 == Invalid Parameter Flag
 
 ### TODO:
-# Write/update ogg tags with vorbis-tools (ogginfo,vorbiscomment)
 # Edit arbitrary tag fields.
 # Add auto yes iscorrect option.
 
@@ -33,6 +32,7 @@ if ${verbose} ; then
 fi
 
 for line in "$@"; do
+    updatetag=false
     echo -e "\nFile: ${line}"
 
     ### Get Basic File Data ###
@@ -51,6 +51,12 @@ for line in "$@"; do
         artist=`grep -m 1 "^TPE1" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         album=`grep -m 1 "^TALB" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         genre=`grep -m 1 "^TCON" <<<"${data}" | cut -d: -f 2- | cut -d\  -f 2`
+    elif [ "${format}" = "OGG" ] ; then
+        data=`vorbiscomment -l "${line}"`
+        title=`grep -i -m 1 "^TITLE" <<<"${data}" | cut -d= -f 2`
+        artist=`grep -i -m 1 "^ARTIST" <<<"${data}" | cut -d= -f 2`
+        album=`grep -i -m 1 "^ALBUM" <<<"${data}" | cut -d= -f 2`
+        genre=`grep -i -m 1 "^GENRE" <<<"${data}" | cut -d= -f 2`
     else
         if ${verbose} ; then
             echo "[Unsupported file type, skipping...]"
@@ -120,7 +126,7 @@ for line in "$@"; do
     fi
 
     ### Update Tags ###
-    if [ "${format}" = "MP3" ] && [ ${updatetag} ] ; then
+    if ${updatetag} ; then
         if ${verbose} ; then
             echo
             echo "title = ${title}"
@@ -129,7 +135,15 @@ for line in "$@"; do
         fi
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-            id3v2 -t "${title}" -a "${artist}"  -A "${album}""${line}"
+            if [ "${format}" = "MP3" ] ; then
+                id3v2 -t "${title}" -a "${artist}" -A "${album}" "${line}"
+            elif [ "${format}" = "OGG" ] ; then
+                echo "$data" | \
+                    sed "s/^TITLE=.*/TITLE=${title}/I"  | \
+                    sed "s/^ARTIST=.*/ARTIST=${artist}/I" | \
+                    sed "s/^ALBUM=.*/ALBUM=${album}/I"  | \
+                        vorbiscomment -w "${line}"
+            fi
         fi
     fi
 
