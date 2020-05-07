@@ -73,117 +73,76 @@ for line in "$@"; do
         continue
     fi
 
+    if  [ -z "${title}" ] ; then
+        title=${filename}
+        updatetag=true
+    fi
+    if [ -z "${artist}" ] || [ "${artist}" = "Various" ] ; then
+        artist="Various Artists"
+        updatetag=true
+    fi
+    if [ -z "${album}" ] ; then
+        album="Unknown Album"
+        updatetag=true
+    fi
+
     ### Prepare to Update Tags ###
     echo "title = ${title}"
     echo "artist = ${artist}"
     echo "album = ${album}"
     echo "genre = ${genre}"
     askyn "Do you trust this file to be tagged correctly" tagok
-    if [ "${tagok}" = 'y' ] || [ "${tagok}" = 'Y' ] ; then
-        verifytag=false
-    else
-        askyn "Is the problem that the album artist should be \"Various Artists\"" quickfix
-        if [ "${quickfix}" = 'y' ] || [ "${quickfix}" = 'Y' ] ; then
-            artist="Various Artists"
-            verifytag=false
-        else
-            verifytag=true
-        fi
-    fi
+    if [ "${tagok}" = 'n' ] || [ "${tagok}" = 'N' ] ; then
+        updatetag=true
 
     ### Verify Title ###
-    if  [ -z "${title}" ] ; then
-        title=${filename}
-        pretagged=false
-    else
-        pretagged=true
-    fi
-    if [ ${verifytag} = true ] ; then
         while true ; do
             askyn "Is \"${title}\" the correct song title" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
             else
-                if ${pretagged} ; then
-                    askyn "Do you wish to overwrite the current tag infomration" retagging
-                    if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
-                        pretagged=false
-                    fi
-                fi
                 read -p "Enter the song title: " title < /dev/tty
             fi
         done
-    fi
-    if [ "${format}" = "MP3" ] && [ ! ${pretagged} ] ; then
-        echo "id3v2 -t \"${title}\" \"${line}\"" >> "${actsh}"
-    fi
 
     ### Verify Artist ###
-    if [ -z "${artist}" ] ; then
-        if ${verbose} ; then
-            echo "Guessing artist based on path..."
-        fi
-        artist=`echo ${line} | rev | cut -d/ -f 3 | rev`
-        pretagged=false
-    else
-        pretagged=true
-    fi
-    if [ -z "${artist}" ] || [ "${artist}" = "Various" ] ; then
-        artist="Various Artists"
-        pretagged=false
-    fi
-    if [ ${verifytag} = true ] ; then
-        while true ; do
-            askyn "Is \"${artist}\" the correct album artist" iscorrect
-            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-                break
-            else
-                if ${pretagged} ; then
-                    askyn "Do you wish to overwrite the current tag infomration" retagging
-                    if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
-                        pretagged=false
-                    fi
-                fi
-                read -p "Enter the album artist: " artist < /dev/tty
+        askyn "Is \"${artist}\" the correct album artist" iscorrect
+        if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
+            if ${verbose} ; then
+                echo "Guessing artist based on path..."
             fi
-        done
-    fi
-    if [ "${format}" = "MP3" ] && [ ! ${pretagged} ] ; then
-        echo "id3v2 -a \"${artist}\" \"${line}\"" >> "${actsh}"
-    fi
+            artist=`echo ${line} | rev | cut -d/ -f 3 | rev`
+
+            while true ; do
+                askyn "Is \"${artist}\" the correct album artist" iscorrect
+                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the album artist: " artist < /dev/tty
+                fi
+            done
+        fi
 
     ### Verify Album ###
-    if [ -z "${album}" ] ; then
-        album="Unknown Album"
-        pretagged=false
-    else
-        pretagged=true
-    fi
-    if [ ${verifytag} = true ] ; then
         while true ; do
             askyn "Is \"${album}\" the correct album name" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
             else
-                if ${pretagged} ; then
-                    askyn "Do you wish to overwrite the current tag infomration" retagging
-                    if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
-                        pretagged=false
-                    fi
-                fi
                 read -p "Enter the album name: " album < /dev/tty
             fi
         done
     fi
-    if [ "${format}" = "MP3" ] && [ ! ${pretagged} ] ; then
-        echo "id3v2 -A \"${album}\" \"${line}\"" >> "${actsh}"
-    fi
 
-    if ${verbose} ; then
-        echo
-        echo "title = ${title}"
-        echo "artist = ${artist}"
-        echo "album = ${album}"
+    ### Update Tags ###
+    if [ "${format}" = "MP3" ] && [ ${updatetag} ] ; then
+        if ${verbose} ; then
+            echo
+            echo "title = ${title}"
+            echo "artist = ${artist}"
+            echo "album = ${album}"
+        fi
+        echo "id3v2 -t \"${title}\" -a \"${artist}\" -A \"${album}\" \"${line}\"" >> "${actsh}"
     fi
 
     ### Setup Destination Directory Structure ###
