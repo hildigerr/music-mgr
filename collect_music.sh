@@ -23,8 +23,6 @@ while getopts ":t:v" o; do
     esac
 done
 shift $((OPTIND-1))
-workdir="${HOME}/.config/collect_music"
-actsh="${workdir}/actions.sh"
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
@@ -32,21 +30,6 @@ if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
 
 if ${verbose} ; then
     echo "dest = ${dest}"
-    echo "workdir = ${workdir}"
-fi
-
-if [ ! -d "${workdir}" ] ; then
-    mkdir -vp "${workdir}"
-fi
-if [ ! -e "${actsh}" ] ; then
-    echo "#!/bin/bash" > "${actsh}"
-else
-    echo >> "${actsh}"
-    echo "### Remove duplicate or invalid actions. And then ..." >> "${actsh}"
-    echo "echo \"[WARNING] Edit actions file then continue.\"" >> "${actsh}"
-    echo "echo \"Actions File: $actsh\"" >> "${actsh}"
-    echo "exit -1" >> "${actsh}"
-    echo "### Resume from here:" >> "${actsh}"
 fi
 
 for line in "$@"; do
@@ -142,27 +125,36 @@ for line in "$@"; do
             echo "artist = ${artist}"
             echo "album = ${album}"
         fi
-        echo "id3v2 -t \"${title}\" -a \"${artist}\" -A \"${album}\" \"${line}\"" >> "${actsh}"
+        askyn "Ok to write the tags" confirm
+        if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+            id3v2 -t "${title}" -a "${artist}"  -A "${album}""${line}"
+        fi
     fi
 
     ### Setup Destination Directory Structure ###
     destdir="${dest}/${artist}/${album}"
-    echo "destination = ${destdir}"
+    while true ; do
+        echo "destination = \"${destdir}\""
+        askyn "Is this the desired destination" confirm
+        if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+            break
+        else
+            read -p "Enter the desired destination: " destdir < /dev/tty
+        fi
+    done
     if [ ! -d "${destdir}" ] ; then
-        echo "mkdir -vp \"${destdir}\"" >> "${actsh}"
+        mkdir -vp "${destdir}"
     fi
 
     ### Move The File to its Final Destination ###
     if [ ! -e "${destdir}/${filename}" ] ; then
-        echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
+        mv "${line}" "${destdir}/${filename}"
     else
         askyn "Do you wish to overwrite the existing file" replace
         if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
-            echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
+            mv "${line}" "${destdir}/${filename}"
         fi
     fi
 
 done
 
-echo "find \"${srcdir}\" -depth -type d -empty -exec rmdir {} \;" >> "${actsh}"
-echo "Review and then execute \"${actsh}\""
