@@ -44,6 +44,8 @@ for line in "$@"; do
         title=`basename "${line}" .wav`
         title=`basename "${title}" .WAV`
     elif [ "${format}" = "MP3" ] ; then
+        id3v2 -C "${line}"
+        id3v2 -s "${line}"
         data=`id3v2 -l "${line}"`
         title=`grep -m 1 "^TIT2 " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
         artist=`grep -m 1 "^TPE1" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
