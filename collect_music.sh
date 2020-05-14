@@ -67,6 +67,10 @@ for line in "$@"; do
         album="Unknown Album"
         updatetag=true
     fi
+    if [ -z "${genre}" ] ; then
+        genre="Other"
+        updatetag=true
+    fi
 
     ### Prepare to Update Tags ###
     echo "title = ${title}"
@@ -114,6 +118,17 @@ for line in "$@"; do
                 read -p "Enter the album name: " album < /dev/tty
             fi
         done
+
+    ### Verify Genre ###
+        while true ; do
+            askyn "Is \"${genre}\" the correct artist genre" iscorrect
+            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                break
+            else
+                read -p "Enter the artist genre: " genre < /dev/tty
+            fi
+        done
+
     fi
 
     ### Update Tags ###
@@ -123,17 +138,18 @@ for line in "$@"; do
             echo "title = ${title}"
             echo "artist = ${artist}"
             echo "album = ${album}"
+            echo "genre = ${genre}"
         fi
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
             if [ "${format}" = "MP3" ] || [ "${format}" = "OGG" ] ; then
-                mtag -t "${title}" -a "${artist}" -A "${album}" "${line}"
+                mtag -t "${title}" -a "${artist}" -A "${album}" -g "${genre}" "${line}"
             fi
         fi
     fi
 
     ### Setup Destination Directory Structure ###
-    destdir="${dest}/${artist}/${album}"
+    destdir="${dest}/${genre}/${artist}/${album}"
     while true ; do
         echo "destination = \"${destdir}\""
         askyn "Is this the desired destination" confirm
