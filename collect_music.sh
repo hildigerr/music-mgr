@@ -1,13 +1,12 @@
 #!/bin/bash
 
-### Dependencies: id3v2, vorbis-tools (vorbiscomment)
-
 ### Exit Status Table ###
 # 0 == Success
 # 1 == Invalid Parameter Flag
 
 ### TODO:
 # Edit arbitrary tag fields.
+# Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
@@ -43,16 +42,8 @@ for line in "$@"; do
     if [ "${format}" = "WAV" ] ; then
         title=`basename "${line}" .wav`
         title=`basename "${title}" .WAV`
-    elif [ "${format}" = "MP3" ] ; then
-        id3v2 -C "${line}"
-        id3v2 -s "${line}"
-        data=`id3v2 -l "${line}"`
-        title=`grep -m 1 "^TIT2 " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
-        artist=`grep -m 1 "^TPE1" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
-        album=`grep -m 1 "^TALB" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
-        genre=`grep -m 1 "^TCON" <<<"${data}" | cut -d: -f 2- | cut -d\  -f 2`
-    elif [ "${format}" = "OGG" ] ; then
-        data=`vorbiscomment -l "${line}"`
+    elif [ "${format}" = "MP3" ] || [ "${format}" = "OGG" ] ; then
+        data=`mtag -l= "${line}"`
         title=`grep -i -m 1 "^TITLE" <<<"${data}" | cut -d= -f 2`
         artist=`grep -i -m 1 "^ARTIST" <<<"${data}" | cut -d= -f 2`
         album=`grep -i -m 1 "^ALBUM" <<<"${data}" | cut -d= -f 2`
@@ -135,14 +126,8 @@ for line in "$@"; do
         fi
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-            if [ "${format}" = "MP3" ] ; then
-                id3v2 -t "${title}" -a "${artist}" -A "${album}" "${line}"
-            elif [ "${format}" = "OGG" ] ; then
-                echo "$data" | \
-                    sed "s/^TITLE=.*/TITLE=${title}/I"  | \
-                    sed "s/^ARTIST=.*/ARTIST=${artist}/I" | \
-                    sed "s/^ALBUM=.*/ALBUM=${album}/I"  | \
-                        vorbiscomment -w "${line}"
+            if [ "${format}" = "MP3" ] || [ "${format}" = "OGG" ] ; then
+                mtag -t "${title}" -a "${artist}" -A "${album}" "${line}"
             fi
         fi
     fi
