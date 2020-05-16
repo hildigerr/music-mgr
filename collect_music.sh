@@ -166,7 +166,7 @@ for line in "$@"; do
     ### Move The File to its Final Destination ###
     if [ ! -e "${destdir}/${filename}" ] ; then
         mv "${line}" "${destdir}/${filename}"
-    else
+    elif [ "${line}" != "${destdir}/${filename}" ] ; then
         askyn "Do you wish to overwrite the existing file" replace
         if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
             mv "${line}" "${destdir}/${filename}"
