@@ -8,6 +8,7 @@
 # Edit arbitrary tag fields.
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
 # play song only optionally
+# Guess tag attributes only optionally
 # Tabulate file comparison (size and hash)
 # Add auto yes iscorrect option.
 
@@ -123,14 +124,22 @@ for line in "$@"; do
         done
 
     ### Verify Genre ###
-        while true ; do
-            askyn "Is \"${genre}\" the correct artist genre" iscorrect
-            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-                break
-            else
-                read -p "Enter the artist genre: " genre < /dev/tty
+        askyn "Is \"${genre}\" the correct artist genre" iscorrect
+        if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
+            if ${verbose} ; then
+                echo "Guessing genre based on path..."
             fi
-        done
+            genre=`echo ${line} | rev | cut -d/ -f 4 | rev`
+
+            while true ; do
+                askyn "Is \"${genre}\" the correct artist genre" iscorrect
+                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the artist genre: " genre < /dev/tty
+                fi
+            done
+        fi
 
     fi
 
