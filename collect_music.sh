@@ -145,7 +145,16 @@ for line in "$@"; do
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
             if [ "${format}" = "MP3" ] || [ "${format}" = "OGG" ] ; then
+                echo "Writing the tags..."
                 mtag -t "${title}" -a "${artist}" -A "${album}" -g "${genre}" "${line}"
+                case $? in
+                    0) echo "Ok" ;;
+                    1) echo "ERROR: Invalid Option!" ;;
+                    2) echo "ERROR: Filename Invalid!" ;;
+                    3) echo "ERROR: File Invalid!" ;;
+                    4) echo "ERROR: Tag Empty!" ;;
+                    5) echo "ERROR: File Not Saved!" ;;
+                esac
             fi
         fi
     fi
