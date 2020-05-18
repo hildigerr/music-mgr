@@ -7,6 +7,7 @@
 ### TODO:
 # Edit arbitrary tag fields.
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
+# play song only optionally
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
@@ -73,6 +74,7 @@ for line in "$@"; do
     fi
 
     ### Prepare to Update Tags ###
+    play -q "${line}" &
     echo "title = ${title}"
     echo "artist = ${artist}"
     echo "album = ${album}"
@@ -173,5 +175,6 @@ for line in "$@"; do
         fi
     fi
 
+    killall play
 done
 
