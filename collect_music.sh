@@ -7,7 +7,6 @@
 ### TODO:
 # Edit arbitrary tag fields.
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
-# Tabulate file comparison (size and hash)
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
@@ -212,10 +211,12 @@ for line in "$@"; do
     if [ ! -e "${destdir}/${filename}" ] ; then
         mv "${line}" "${destdir}/${filename}"
     elif [ "${line}" != "${destdir}/${filename}" ] ; then
-        echo "Filesize:"
-        du "${line}" "${destdir}/${filename}"
-        echo "MD5 Hash:"
-        md5sum "${line}" "${destdir}/${filename}"
+        fisz=`du -h "${line}" | cut -f 1`
+        fimd=`md5sum "${line}"`
+        ffsz=`du -h "${destdir}/${filename}" | cut -f 1`
+        ffmd=`md5sum "${destdir}/${filename}"`
+        echo -e "Size MD5Sum                           Filename"
+        echo -e "${fisz} ${fimd}\n${ffsz} ${ffmd}"
         askyn "Do you wish to overwrite the existing file" replace
         if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
             mv "${line}" "${destdir}/${filename}"
