@@ -7,18 +7,18 @@
 ### TODO:
 # Edit arbitrary tag fields.
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
-# play song only optionally
 # Tabulate file comparison (size and hash)
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vg] [-t <target directory>] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vpg] [-t <target directory>] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:vg" o; do
+while getopts ":t:vpg" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
         v) verbose=true ;;
+        p) playbg=true ;;
         g) guess=true ;;
         *) usage ;;
     esac
@@ -27,6 +27,7 @@ shift $((OPTIND-1))
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
+if [ -z "${playbg}" ] ; then playbg=false ; fi
 if [ -z "${guess}" ] ; then guess=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
 
@@ -77,7 +78,9 @@ for line in "$@"; do
     fi
 
     ### Prepare to Update Tags ###
-    play -q "${line}" &
+    if $playbg ; then
+        play -q "${line}" &
+    fi
     echo "title = ${title}"
     echo "artist = ${artist}"
     echo "album = ${album}"
@@ -219,6 +222,6 @@ for line in "$@"; do
         fi
     fi
 
-    killall play
+    if $playbg ; then killall play ; fi
 done
 
