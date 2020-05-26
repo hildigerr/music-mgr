@@ -8,18 +8,18 @@
 # Edit arbitrary tag fields.
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
 # play song only optionally
-# Guess tag attributes only optionally
 # Tabulate file comparison (size and hash)
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-v] [-t <target directory>] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vg] [-t <target directory>] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:v" o; do
+while getopts ":t:vg" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
         v) verbose=true ;;
+        g) guess=true ;;
         *) usage ;;
     esac
 done
@@ -27,6 +27,7 @@ shift $((OPTIND-1))
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
+if [ -z "${guess}" ] ; then guess=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
 
 if ${verbose} ; then
@@ -98,10 +99,14 @@ for line in "$@"; do
     ### Verify Artist ###
         askyn "Is \"${artist}\" the correct album artist" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
-            if ${verbose} ; then
-                echo "Guessing artist based on path..."
+            if ${guess} ; then
+                if ${verbose} ; then
+                    echo "Guessing artist based on path..."
+                fi
+                artist=`echo ${line} | rev | cut -d/ -f 3 | rev`
+            else
+                read -p "Enter the album artist: " artist < /dev/tty
             fi
-            artist=`echo ${line} | rev | cut -d/ -f 3 | rev`
 
             while true ; do
                 askyn "Is \"${artist}\" the correct album artist" iscorrect
@@ -116,10 +121,14 @@ for line in "$@"; do
     ### Verify Album ###
         askyn "Is \"${album}\" the correct album name" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
-            if ${verbose} ; then
-                echo "Guessing album based on path..."
+            if ${guess} ; then
+                if ${verbose} ; then
+                    echo "Guessing album based on path..."
+                fi
+                album=`echo ${line} | rev | cut -d/ -f 2 | rev`
+            else
+                read -p "Enter the album name: " album < /dev/tty
             fi
-            album=`echo ${line} | rev | cut -d/ -f 2 | rev`
 
             while true ; do
                 askyn "Is \"${album}\" the correct album name" iscorrect
@@ -134,10 +143,14 @@ for line in "$@"; do
     ### Verify Genre ###
         askyn "Is \"${genre}\" the correct artist genre" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
-            if ${verbose} ; then
-                echo "Guessing genre based on path..."
+            if ${guess} ; then
+                if ${verbose} ; then
+                    echo "Guessing genre based on path..."
+                fi
+                genre=`echo ${line} | rev | cut -d/ -f 4 | rev`
+            else
+                read -p "Enter the artist genre: " genre < /dev/tty
             fi
-            genre=`echo ${line} | rev | cut -d/ -f 4 | rev`
 
             while true ; do
                 askyn "Is \"${genre}\" the correct artist genre" iscorrect
