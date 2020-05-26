@@ -114,14 +114,22 @@ for line in "$@"; do
         fi
 
     ### Verify Album ###
-        while true ; do
-            askyn "Is \"${album}\" the correct album name" iscorrect
-            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-                break
-            else
-                read -p "Enter the album name: " album < /dev/tty
+        askyn "Is \"${album}\" the correct album name" iscorrect
+        if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
+            if ${verbose} ; then
+                echo "Guessing album based on path..."
             fi
-        done
+            album=`echo ${line} | rev | cut -d/ -f 2 | rev`
+
+            while true ; do
+                askyn "Is \"${album}\" the correct album name" iscorrect
+                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the album name: " album < /dev/tty
+                fi
+            done
+        fi
 
     ### Verify Genre ###
         askyn "Is \"${genre}\" the correct artist genre" iscorrect
