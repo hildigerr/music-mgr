@@ -12,13 +12,14 @@ source map_genres.sh
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vpg] [-t <target directory>] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vrpg] [-t <target directory>] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:vpg" o; do
+while getopts ":t:vrpg" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
         v) verbose=true ;;
+        r) renameq=true ;;
         p) playbg=true ;;
         g) guess=true ;;
         *) usage ;;
@@ -28,6 +29,7 @@ shift $((OPTIND-1))
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
+if [ -z "${renameq}" ] ; then renameq=false ; fi
 if [ -z "${playbg}" ] ; then playbg=false ; fi
 if [ -z "${guess}" ] ; then guess=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
@@ -210,6 +212,24 @@ for line in "$@"; do
     done
     if [ ! -d "${destdir}" ] ; then
         mkdir -vp "${destdir}"
+    fi
+
+    ### Verify Filename ###
+    if $renameq ; then
+        echo "filename = \"${filename}\""
+        askyn "Is this the desired filename" confirm
+        if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
+            filename="${title}.${filename##*.}"
+            while true ; do
+                echo "filename = \"${filename}\""
+                askyn "Is this the desired filename" confirm
+                if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the desired filename: " filename < /dev/tty
+                fi
+            done
+        fi
     fi
 
     ### Move The File to its Final Destination ###
