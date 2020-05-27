@@ -38,6 +38,15 @@ for line in "$@"; do
     updatetag=false
     echo -e "\nFile: ${line}"
 
+    ### Get Placeholder Song ###
+    ythash=${line/https:\/\/www.youtube.com\/watch?v=}
+    if [ "${ythash}" != "${line}" ] ; then
+        youtube-dl -F "${line}"
+        read -p "Select format code: " num </dev/tty && echo
+        youtube-dl --extract-audio --audio-format mp3 --output "/tmp/%(title)s-%(id)s.%(ext)s" -f "${num}" "${line}"
+        line=`ls /tmp/*"${ythash}"* | tail -n1`
+    fi
+
     ### Get Basic File Data ###
     filename=`basename "${line}"`
     format=`echo "${filename}" | tr . \\\n | tail -n1 | tr "[:lower:]" "[:upper:]"`
