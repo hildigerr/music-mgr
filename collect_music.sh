@@ -65,7 +65,12 @@ for line in "$@"; do
             ;;
         1|5) echo "ERROR: $0 corrupted!" &  exit 1 ;;
         2|3) if ${verbose} ; then echo "[Unsupported file type, skipping...]" ; fi && continue ;;
-        4) ;; # Untagged
+        4) # Untagged
+            title=''
+            artist=''
+            album=''
+            genre=''
+            ;;
     esac
 
     if  [ -z "${title}" ] ; then
