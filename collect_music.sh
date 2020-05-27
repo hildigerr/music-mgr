@@ -92,6 +92,7 @@ for line in "$@"; do
 
     ### Prepare to Update Tags ###
     if $playbg ; then
+        killall play 2>/dev/null
         play -q "${line}" &
     fi
     echo "title = ${title}"
@@ -204,6 +205,11 @@ for line in "$@"; do
         fi
     fi
 
+    askyn "Is the file already in the desired location" confirm
+    if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+        continue
+    fi
+
     ### Setup Destination Directory Structure ###
     destdir="${dest}/${GENRE_DIRMAP[${genre}]}/${artist}/${album}"
     while true ; do
@@ -253,6 +259,5 @@ for line in "$@"; do
         fi
     fi
 
-    if $playbg ; then killall play ; fi
 done
 
