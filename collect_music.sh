@@ -43,30 +43,26 @@ for line in "$@"; do
     if [ "${ythash}" != "${line}" ] ; then
         youtube-dl -F "${line}"
         read -p "Select format code: " num </dev/tty && echo
-        youtube-dl --extract-audio --audio-format mp3 --output "/tmp/%(title)s-%(id)s.%(ext)s" -f "${num}" "${line}"
+        youtube-dl --extract-audio --output "/tmp/%(title)s-%(id)s.%(ext)s" -f "${num}" "${line}"
         line=`ls /tmp/*"${ythash}"* | tail -n1`
     fi
 
     ### Get Basic File Data ###
     filename=`basename "${line}"`
-    format=`echo "${filename}" | tr . \\\n | tail -n1 | tr "[:lower:]" "[:upper:]"`
 
     ### Retrieve Media Tag Data ###
-    if [ "${format}" = "WAV" ] ; then
-        title=`basename "${line}" .wav`
-        title=`basename "${title}" .WAV`
-    elif [ "${format}" = "MP3" ] || [ "${format}" = "OGG" ] ; then
-        data=`mtag -l= "${line}"`
-        title=`grep -i -m 1 "^TITLE" <<<"${data}" | cut -d= -f 2`
-        artist=`grep -i -m 1 "^ARTIST" <<<"${data}" | cut -d= -f 2`
-        album=`grep -i -m 1 "^ALBUM" <<<"${data}" | cut -d= -f 2`
-        genre=`grep -i -m 1 "^GENRE" <<<"${data}" | cut -d= -f 2`
-    else
-        if ${verbose} ; then
-            echo "[Unsupported file type, skipping...]"
-        fi
-        continue
-    fi
+    data=`mtag -l= "${line}"`
+    case $? in
+        0)
+            title=`grep -i -m 1 "^TITLE" <<<"${data}" | cut -d= -f 2`
+            artist=`grep -i -m 1 "^ARTIST" <<<"${data}" | cut -d= -f 2`
+            album=`grep -i -m 1 "^ALBUM" <<<"${data}" | cut -d= -f 2`
+            genre=`grep -i -m 1 "^GENRE" <<<"${data}" | cut -d= -f 2`
+            ;;
+        1|5) echo "ERROR: $0 corrupted!" &  exit 1 ;;
+        2|3) if ${verbose} ; then echo "[Unsupported file type, skipping...]" ; fi && continue ;;
+        4) ;; # Untagged
+    esac
 
     if  [ -z "${title}" ] ; then
         title=${filename}
@@ -186,18 +182,16 @@ for line in "$@"; do
         fi
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-            if [ "${format}" = "MP3" ] || [ "${format}" = "OGG" ] ; then
-                echo "Writing the tags..."
-                mtag -t "${title}" -a "${artist}" -A "${album}" -g "${genre}" "${line}"
-                case $? in
-                    0) echo "Ok" ;;
-                    1) echo "ERROR: Invalid Option!" ;;
-                    2) echo "ERROR: Filename Invalid!" ;;
-                    3) echo "ERROR: File Invalid!" ;;
-                    4) echo "ERROR: Tag Empty!" ;;
-                    5) echo "ERROR: File Not Saved!" ;;
-                esac
-            fi
+            echo "Writing the tags..."
+            mtag -t "${title}" -a "${artist}" -A "${album}" -g "${genre}" "${line}"
+            case $? in
+                0) echo "Ok" ;;
+                1) echo "ERROR: Invalid Option!" ;;
+                2) echo "ERROR: Filename Invalid!" ;;
+                3) echo "ERROR: File Invalid!" ;;
+                4) echo "ERROR: Tag Empty!" ;;
+                5) echo "ERROR: File Not Saved!" ;;
+            esac
         fi
     fi
 
