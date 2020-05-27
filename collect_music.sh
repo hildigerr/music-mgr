@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source map_genres.sh
+
 ### Exit Status Table ###
 # 0 == Success
 # 1 == Invalid Parameter Flag
@@ -196,7 +198,7 @@ for line in "$@"; do
     fi
 
     ### Setup Destination Directory Structure ###
-    destdir="${dest}/${genre}/${artist}/${album}"
+    destdir="${dest}/${GENRE_DIRMAP[${genre}]}/${artist}/${album}"
     while true ; do
         echo "destination = \"${destdir}\""
         askyn "Is this the desired destination" confirm
