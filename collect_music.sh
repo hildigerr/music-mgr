@@ -60,6 +60,7 @@ for line in "$@"; do
             title=`grep -i -m 1 "^TITLE" <<<"${data}" | cut -d= -f 2`
             artist=`grep -i -m 1 "^ARTIST" <<<"${data}" | cut -d= -f 2`
             album=`grep -i -m 1 "^ALBUM" <<<"${data}" | cut -d= -f 2`
+            year=`grep -i -m 1 "^DATE" <<<"${data}" | cut -d= -f 2`
             genre=`grep -i -m 1 "^GENRE" <<<"${data}" | cut -d= -f 2`
             ;;
         1|5) echo "ERROR: $0 corrupted!" &  exit 1 ;;
@@ -68,6 +69,7 @@ for line in "$@"; do
             title=''
             artist=''
             album=''
+            year=''
             genre=''
             ;;
     esac
@@ -94,6 +96,7 @@ for line in "$@"; do
     echo "title = ${title}"
     echo "artist = ${artist}"
     echo "album = ${album}"
+    echo "year = ${year}"
     echo "genre = ${genre}"
     askyn "Do you trust this file to be tagged correctly" tagok
     if [ "${tagok}" = 'n' ] || [ "${tagok}" = 'N' ] ; then
@@ -155,6 +158,25 @@ for line in "$@"; do
         fi
         if [ -n "${album}" ] ; then params+=(-A "${album}") ; fi
 
+    ### Verify Year ###
+        if [ -z "${year}" ] ; then
+            askyn "Do you want to add the album year tag" confirm
+            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+                year=`date  +%Y`
+            fi
+        fi
+        if [ -n "${year}" ] ; then
+            while true ; do
+                askyn "Is \"${year}\" the correct album year" iscorrect
+                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the album year: " year < /dev/tty
+                fi
+            done
+        fi
+        if [ -n "${year}" ] ; then params+=(-y "${year}") ; fi
+
     ### Verify Genre ###
         askyn "Is \"${genre}\" the correct artist genre" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
@@ -187,6 +209,7 @@ for line in "$@"; do
             echo "title = ${title}"
             echo "artist = ${artist}"
             echo "album = ${album}"
+            echo "year = ${year}"
             echo "genre = ${genre}"
         fi
         askyn "Ok to write the tags" confirm
