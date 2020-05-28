@@ -39,7 +39,6 @@ if ${verbose} ; then
 fi
 
 for line in "$@"; do
-    updatetag=false
     echo -e "\nFile: ${line}"
 
     ### Get Placeholder Song ###
@@ -75,22 +74,19 @@ for line in "$@"; do
 
     if  [ -z "${title}" ] ; then
         title=${filename}
-        updatetag=true
     fi
     if [ -z "${artist}" ] || [ "${artist}" = "Various" ] ; then
         artist="Various Artists"
-        updatetag=true
     fi
     if [ -z "${album}" ] ; then
         album="Unknown Album"
-        updatetag=true
     fi
     if [ -z "${genre}" ] ; then
         genre="Other"
-        updatetag=true
     fi
 
     ### Prepare to Update Tags ###
+    params=()
     if $playbg ; then
         killall play 2>/dev/null
         play -q "${line}" &
@@ -101,7 +97,6 @@ for line in "$@"; do
     echo "genre = ${genre}"
     askyn "Do you trust this file to be tagged correctly" tagok
     if [ "${tagok}" = 'n' ] || [ "${tagok}" = 'N' ] ; then
-        updatetag=true
 
     ### Verify Title ###
         while true ; do
@@ -112,6 +107,7 @@ for line in "$@"; do
                 read -p "Enter the song title: " title < /dev/tty
             fi
         done
+        if [ -n "${title}" ] ; then params+=(-t "${title}") ; fi
 
     ### Verify Artist ###
         askyn "Is \"${artist}\" the correct album artist" iscorrect
@@ -134,6 +130,7 @@ for line in "$@"; do
                 fi
             done
         fi
+        if [ -n "${artist}" ] ; then params+=(-a "${artist}") ; fi
 
     ### Verify Album ###
         askyn "Is \"${album}\" the correct album name" iscorrect
@@ -156,6 +153,7 @@ for line in "$@"; do
                 fi
             done
         fi
+        if [ -n "${album}" ] ; then params+=(-A "${album}") ; fi
 
     ### Verify Genre ###
         askyn "Is \"${genre}\" the correct artist genre" iscorrect
@@ -178,11 +176,12 @@ for line in "$@"; do
                 fi
             done
         fi
+        if [ -n "${genre}" ] ; then params+=(-g "${genre}") ; fi
 
     fi
 
     ### Update Tags ###
-    if ${updatetag} ; then
+    if [ ${#params[@]} -gt 0 ] ; then
         if ${verbose} ; then
             echo
             echo "title = ${title}"
@@ -193,7 +192,7 @@ for line in "$@"; do
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
             echo "Writing the tags..."
-            mtag -t "${title}" -a "${artist}" -A "${album}" -g "${genre}" "${line}"
+            mtag "${params[@]}" "${line}"
             case $? in
                 0) echo "Ok" ;;
                 1) echo "ERROR: Invalid Option!" ;;
