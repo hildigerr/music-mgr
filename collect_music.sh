@@ -98,6 +98,12 @@ while read -r line || [[ -n ${line} ]]; do
 
     ### Verify Artist ###
     if [ -z "${artist}" ] ; then
+        if ${verbose} ; then
+            echo "Guessing artist based on path..."
+        fi
+        artist=`echo ${line} | rev | cut -d/ -f 3 | rev`
+    fi
+    if [ -z "${artist}" ] ; then
         artist="Various Artists"
     fi
     while true ; do
