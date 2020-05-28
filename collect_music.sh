@@ -57,6 +57,7 @@ for line in "$@"; do
     data=`mtag -l= "${line}"`
     case $? in
         0)
+            track=`grep -i -m 1 "^TRACKNUMBER" <<<"${data}" | cut -d= -f 2`
             title=`grep -i -m 1 "^TITLE" <<<"${data}" | cut -d= -f 2`
             artist=`grep -i -m 1 "^ARTIST" <<<"${data}" | cut -d= -f 2`
             album=`grep -i -m 1 "^ALBUM" <<<"${data}" | cut -d= -f 2`
@@ -66,6 +67,7 @@ for line in "$@"; do
         1|5) echo "ERROR: $0 corrupted!" &  exit 1 ;;
         2|3) if ${verbose} ; then echo "[Unsupported file type, skipping...]" ; fi && continue ;;
         4) # Untagged
+            track=''
             title=''
             artist=''
             album=''
@@ -93,6 +95,7 @@ for line in "$@"; do
         killall play 2>/dev/null
         play -q "${line}" &
     fi
+    echo "track = ${track}"
     echo "title = ${title}"
     echo "artist = ${artist}"
     echo "album = ${album}"
@@ -177,6 +180,25 @@ for line in "$@"; do
         fi
         if [ -n "${year}" ] ; then params+=(-y "${year}") ; fi
 
+    ### Verify Track Number ###
+        if [ -z "${track}" ] ; then
+            askyn "Do you want to add the track number" confirm
+            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+                track="01"
+            fi
+        fi
+        if [ -n "${track}" ] ; then
+            while true ; do
+                askyn "Is \"${track}\" the correct track number" iscorrect
+                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the track number: " track < /dev/tty
+                fi
+            done
+        fi
+        if [ -n "${track}" ] ; then params+=(-n "${track}") ; fi
+
     ### Verify Genre ###
         askyn "Is \"${genre}\" the correct artist genre" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
@@ -210,6 +232,7 @@ for line in "$@"; do
             echo "artist = ${artist}"
             echo "album = ${album}"
             echo "year = ${year}"
+            echo "track = ${track}"
             echo "genre = ${genre}"
         fi
         askyn "Ok to write the tags" confirm
@@ -252,7 +275,7 @@ for line in "$@"; do
         echo "filename = \"${filename}\""
         askyn "Is this the desired filename" confirm
         if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
-            filename="${title}.${filename##*.}"
+            filename="${track} - ${title}.${filename##*.}"
             while true ; do
                 echo "filename = \"${filename}\""
                 askyn "Is this the desired filename" confirm
