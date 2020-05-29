@@ -172,6 +172,14 @@ while read -r line || [[ -n ${line} ]]; do
         echo "mkdir -vp \"${destdir}\"" >> "${actsh}"
     fi
 
-    echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
+    ### Move The File to its Final Destination ###
+    if [ ! -e "${destdir}/${filename}" ] ; then
+        echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
+    else
+        read -s -n 1 -p "Do you wish to overwrite the existing file (y/n)? " replace < /dev/tty && echo
+        if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
+            echo "mv \"${line}\" \"${destdir}/${filename}\"" >> "${actsh}"
+        fi
+    fi
 
 done < ${workdir}/origin.list
