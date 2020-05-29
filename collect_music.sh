@@ -76,6 +76,17 @@ while read -r line || [[ -n ${line} ]]; do
         continue
     fi
 
+    ### Prepare to Update Tags ###
+    echo "title = ${title}"
+    echo "artist = ${artist}"
+    echo "album = ${album}"
+    read -s -n 1 -p "Do you trust this file to be tagged correctly (y/n)? " tagok < /dev/tty && echo
+    if [ "${tagok}" = 'y' ] || [ "${tagok}" = 'Y' ] ; then
+        verifytag=false
+    else
+        verifytag=true
+    fi
+
     ### Verify Title ###
     if  [ -z "${title}" ] ; then
         title=${filename}
@@ -83,20 +94,22 @@ while read -r line || [[ -n ${line} ]]; do
     else
         pretagged=true
     fi
-    while true ; do
-        read -s -n 1 -p "Is \"${title}\" the correct song title (y/n)? " iscorrect < /dev/tty && echo
-        if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-            break
-        else
-            if ${pretagged} ; then
-                read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
-                if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
-                    pretagged=false
+    if [ ${verifytag} = true ] ; then
+        while true ; do
+            read -s -n 1 -p "Is \"${title}\" the correct song title (y/n)? " iscorrect < /dev/tty && echo
+            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                break
+            else
+                if ${pretagged} ; then
+                    read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
+                    if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
+                        pretagged=false
+                    fi
                 fi
+                read -p "Enter the song title: " title < /dev/tty
             fi
-            read -p "Enter the song title: " title < /dev/tty
-        fi
-    done
+        done
+    fi
     if [ ! "${format}" = "Wave" ] && [ ! ${pretagged} ] ; then
         echo "id3 -t \"${title}\" \"${line}\"" >> "${actsh}"
     fi
@@ -115,20 +128,22 @@ while read -r line || [[ -n ${line} ]]; do
         artist="Various Artists"
         pretagged=false
     fi
-    while true ; do
-        read -s -n 1 -p "Is \"${artist}\" the correct album artist (y/n)? " iscorrect < /dev/tty && echo
-        if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-            break
-        else
-            if ${pretagged} ; then
-                read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
-                if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
-                    pretagged=false
+    if [ ${verifytag} = true ] ; then
+        while true ; do
+            read -s -n 1 -p "Is \"${artist}\" the correct album artist (y/n)? " iscorrect < /dev/tty && echo
+            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                break
+            else
+                if ${pretagged} ; then
+                    read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
+                    if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
+                        pretagged=false
+                    fi
                 fi
+                read -p "Enter the album artist: " artist < /dev/tty
             fi
-            read -p "Enter the album artist: " artist < /dev/tty
-        fi
-    done
+        done
+    fi
     if [ ! "${format}" = "Wave" ] && [ ! ${pretagged} ] ; then
         echo "id3 -a \"${artist}\" \"${line}\"" >> "${actsh}"
     fi
@@ -140,20 +155,22 @@ while read -r line || [[ -n ${line} ]]; do
     else
         pretagged=true
     fi
-    while true ; do
-        read -s -n 1 -p "Is \"${album}\" the correct album name (y/n)? " iscorrect < /dev/tty && echo
-        if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-            break
-        else
-            if ${pretagged} ; then
-                read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
-                if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
-                    pretagged=false
+    if [ ${verifytag} = true ] ; then
+        while true ; do
+            read -s -n 1 -p "Is \"${album}\" the correct album name (y/n)? " iscorrect < /dev/tty && echo
+            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                break
+            else
+                if ${pretagged} ; then
+                    read -s -n 1 -p "Do you wish to overwrite the current tag infomration (y/n)? " retagging < /dev/tty && echo
+                    if [ "${retagging}" = 'y' ] || [ "${retagging}" = 'Y' ] ; then
+                        pretagged=false
+                    fi
                 fi
+                read -p "Enter the album name: " album < /dev/tty
             fi
-            read -p "Enter the album name: " album < /dev/tty
-        fi
-    done
+        done
+    fi
     if [ ! "${format}" = "Wave" ] && [ ! ${pretagged} ] ; then
         echo "id3 -A \"${album}\" \"${line}\"" >> "${actsh}"
     fi
