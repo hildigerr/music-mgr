@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### Dependencies: mediainfo, id3
+### Dependencies: mediainfo, id3 or id3tool, [vorbis-tools (ogginfo,vorbiscomment)]?
 
 ### Exit Status Table ###
 # 0 == Success
@@ -8,6 +8,7 @@
 # 2 == Missing Directory
 
 ### TODO:
+# Write/update ogg tags.
 # Edit arbitrary tag fields.
 # Add auto yes iscorrect option.
 # Make an option which will perform actions and clean up workdir.
@@ -66,9 +67,10 @@ while read -r line || [[ -n ${line} ]]; do
     if [ "${format}" = "Wave" ] ; then
         title=`basename "${line}" .wav`
     elif [ "${format}" = "MPEG Audio" ] || [ "${format}" = "OGG" ] ; then
-        title=`grep -m 1 "Track name " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
-        artist=`grep -m 1 "Performer" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
-        album=`grep -m 1 "Album" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+        id3 -l "${line}" #XXX mediainfo doesn't show id3's tag changes XXX
+        title=`grep -m 1 "^Track name " <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+        artist=`grep -m 1 "^Album/Performer" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
+        album=`grep -m 1 "^Album" <<<"${data}" | cut -d: -f 2- | sed 's/^ *//g'`
     else
         if ${verbose} ; then
             echo "[Unsupported file type, skipping...]"
@@ -116,7 +118,7 @@ while read -r line || [[ -n ${line} ]]; do
             fi
         done
     fi
-    if [ ! "${format}" = "Wave" ] && [ ! ${pretagged} ] ; then
+    if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
         echo "id3 -t \"${title}\" \"${line}\"" >> "${actsh}"
     fi
 
@@ -150,7 +152,7 @@ while read -r line || [[ -n ${line} ]]; do
             fi
         done
     fi
-    if [ ! "${format}" = "Wave" ] && [ ! ${pretagged} ] ; then
+    if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
         echo "id3 -a \"${artist}\" \"${line}\"" >> "${actsh}"
     fi
 
@@ -177,7 +179,7 @@ while read -r line || [[ -n ${line} ]]; do
             fi
         done
     fi
-    if [ ! "${format}" = "Wave" ] && [ ! ${pretagged} ] ; then
+    if [ "${format}" = "MPEG Audio" ] && [ ! ${pretagged} ] ; then
         echo "id3 -A \"${album}\" \"${line}\"" >> "${actsh}"
     fi
 
