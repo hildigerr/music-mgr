@@ -3,6 +3,7 @@
 ### Dependencies: mediainfo, id3 or id3tool, [vorbis-tools (ogginfo,vorbiscomment)]?
 
 ### Exit Status Table ###
+#-1 == Clean Up Action Interrupted
 # 0 == Success
 # 1 == Invalid Parameter Flag
 # 2 == Missing Directory
@@ -11,17 +12,17 @@
 # Write/update ogg tags.
 # Edit arbitrary tag fields.
 # Add auto yes iscorrect option.
-# Make an option which will perform actions and clean up workdir.
 
-usage() { echo "Usage: $0 [-v] [-s <source directory>] [-t <target directory>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vc] [-s <source directory>] [-t <target directory>]" 1>&2; exit 1; }
 nodir() { echo "ERROR: $1 does not exist or is not a directory." 1>&2; exit 2; }
 
 ### Variables ###
-while getopts ":s:t:v" o; do
+while getopts ":s:t:vc" o; do
     case "${o}" in
         s) srcdir=${OPTARG} ;;
         t) dest=${OPTARG} ;;
         v) verbose=true ;;
+        c) cleanup=true ;;
         *) usage ;;
     esac
 done
@@ -42,6 +43,26 @@ elif [ ! -d "${dest}" ] ; then
     nodir ${dest} #Or should we mkdir?
 fi
 
+### Clean Up Action ###
+# Stop and Resume at any moment. When ready to finalize,
+# run with cleanup option [-c] to execute queued actions.
+# If a mistake is made stop immedietly and remove the
+# corrosponding lines from actions.sh
+if [ ! -z $cleanup ] ; then
+    if ${verbose} ; then
+        echo "[CLEAN] Running \"${actsh}\" ..."
+    fi
+    bash "${actsh}"
+    status=$?
+    if [ $status -eq -1 ] ; then
+        #TODO: Echo explanation or instructions.
+        exit -1
+    else
+        mv "${actsh}" "${actsh}-`date +%Y%m%d`"
+        exit 0
+    fi
+fi
+
 if ${verbose} ; then
     echo "srcdir = ${srcdir}"
     echo "dest = ${dest}"
@@ -51,7 +72,16 @@ fi
 if [ ! -d "${workdir}" ] ; then
     mkdir -vp "${workdir}"
 fi
-echo "#!/bin/bash" > "${actsh}"
+if [ ! -e "${actsh}" ] ; then
+    echo "#!/bin/bash" > "${actsh}"
+else
+    echo >> "${actsh}"
+    echo "### Remove duplicate or invalid actions. And then ..." >> "${actsh}"
+    echo "echo \"[WARNING] Edit actions file then continue.\"" >> "${actsh}"
+    echo "echo \"Actions File: $actsh\"" >> "${actsh}"
+    echo "exit -1" >> "${actsh}"
+    echo "### Resume from here:" >> "${actsh}"
+fi
 
 # A temporary file is used to list all files in the source directory.
 find "${srcdir}" -type f > ${workdir}/origin.list && echo
@@ -208,3 +238,5 @@ while read -r line || [[ -n ${line} ]]; do
     fi
 
 done < ${workdir}/origin.list
+
+echo "find \"${srcdir}\" -depth -type d -empty -exec rmdir {} \;" >> "${actsh}"
