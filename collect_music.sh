@@ -84,7 +84,13 @@ while read -r line || [[ -n ${line} ]]; do
     if [ "${tagok}" = 'y' ] || [ "${tagok}" = 'Y' ] ; then
         verifytag=false
     else
-        verifytag=true
+        read -s -n 1 -p "Is the problem that the album artist should be \"Various Artists\" (y/n)? " quickfix < /dev/tty && echo
+        if [ "${quickfix}" = 'y' ] || [ "${quickfix}" = 'Y' ] ; then
+            artist="Various Artists"
+            verifytag=false
+        else
+            verifytag=true
+        fi
     fi
 
     ### Verify Title ###
