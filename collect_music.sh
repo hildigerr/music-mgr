@@ -63,6 +63,7 @@ for line in "$@"; do
             album=`grep -i -m 1 "^ALBUM" <<<"${data}" | cut -d= -f 2`
             year=`grep -i -m 1 "^DATE" <<<"${data}" | cut -d= -f 2`
             genre=`grep -i -m 1 "^GENRE" <<<"${data}" | cut -d= -f 2`
+            comment=`grep -i -m 1 "^COMMENT" <<<"${data}" | cut -d= -f 2`
             ;;
         1|5) echo "ERROR: $0 corrupted!" &  exit 1 ;;
         2|3) if ${verbose} ; then echo "[Unsupported file type, skipping...]" ; fi && continue ;;
@@ -73,6 +74,7 @@ for line in "$@"; do
             album=''
             year=''
             genre=''
+            comment=''
             ;;
     esac
 
@@ -101,6 +103,7 @@ for line in "$@"; do
     echo "album = ${album}"
     echo "year = ${year}"
     echo "genre = ${genre}"
+    echo "comment = ${comment}"
     askyn "Do you trust this file to be tagged correctly" tagok
     if [ "${tagok}" = 'n' ] || [ "${tagok}" = 'N' ] ; then
 
@@ -222,6 +225,25 @@ for line in "$@"; do
         fi
         if [ -n "${genre}" ] ; then params+=(-g "${genre}") ; fi
 
+    ### Verify Comment ###
+        if [ -z "${comment}" ] ; then
+            askyn "Do you want to add a comment tag" confirm
+            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+                comment="${ythash}"
+            fi
+        fi
+        if [ -n "${comment}" ] ; then
+            while true ; do
+                askyn "Tag with comment \"${comment}\"" iscorrect
+                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the comment: " comment < /dev/tty
+                fi
+            done
+        fi
+        if [ -n "${comment}" ] ; then params+=(-c "${comment}") ; fi
+
     fi
 
     ### Update Tags ###
@@ -234,6 +256,7 @@ for line in "$@"; do
             echo "year = ${year}"
             echo "track = ${track}"
             echo "genre = ${genre}"
+            echo "comment = ${comment}"
         fi
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
