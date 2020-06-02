@@ -1,6 +1,5 @@
 #!/bin/bash
 
-source map_genres.sh
 
 ### Exit Status Table ###
 # 0 == Success
@@ -12,12 +11,13 @@ source map_genres.sh
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vrpg] [-t <target directory>] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vrpg] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:vrpg" o; do
+while getopts ":t:m:vrpg" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
+        m) map_genres=${OPTARG} ;;
         v) verbose=true ;;
         r) renameq=true ;;
         p) playbg=true ;;
@@ -33,6 +33,18 @@ if [ -z "${renameq}" ] ; then renameq=false ; fi
 if [ -z "${playbg}" ] ; then playbg=false ; fi
 if [ -z "${guess}" ] ; then guess=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
+if [ -z "${map_genres}" ] ; then map_genres="${HOME}/.config/map_genres.sh" ; fi
+
+if [ ! -e "${map_genres}" ] ; then
+    if ${verbose} ; then echo "Generating genre map: \"${map_genres}\"" ; fi
+    echo "declare -A GENRE_DIRMAP" > "${map_genres}"
+    mtag -L | awk '{printf "GENRE_DIRMAP[%s]=\"%s\"\n", $0, $0}' >> "${map_genres}"
+    # Append Missing Genres
+    echo "GENRE_DIRMAP[Children\\'s]=\"Children's\"" >> "${map_genres}"
+    echo "GENRE_DIRMAP[Power Metal]=\"Power Metal\"" >> "${map_genres}"
+    echo "GENRE_DIRMAP[Trap]=\"Trap\"" >> "${map_genres}"
+fi
+source "${map_genres}"
 
 if ${verbose} ; then
     echo "dest = ${dest}"
