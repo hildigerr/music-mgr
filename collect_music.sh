@@ -264,7 +264,7 @@ for line in "$@"; do
             echo
             echo "title = ${title}"
             echo "artist = ${artist}"
-            echo "album = ${album}"
+            echo "album = ${album/Unknown Album/}"
             echo "year = ${year}"
             echo "track = ${track}"
             echo "genre = ${genre}"
@@ -291,7 +291,7 @@ for line in "$@"; do
     fi
 
     ### Setup Destination Directory Structure ###
-    destdir="${dest}/${GENRE_DIRMAP[${genre}]}/${artist}/${album}"
+    destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/${artist:-Various Artists}/${album:-Singles}"
     while true ; do
         echo "destination = \"${destdir}\""
         askyn "Is this the desired destination" confirm
