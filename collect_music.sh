@@ -143,11 +143,11 @@ for line in "$@"; do
             fi
 
             while true ; do
-                askyn "Is \"${artist}\" the correct album artist" iscorrect
+                askyn "Is \"${artist}\" the correct artist" iscorrect
                 if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                     break
                 else
-                    read -p "Enter the album artist: " artist < /dev/tty
+                    read -p "Enter the artist(s): " artist < /dev/tty
                 fi
             done
         fi
@@ -292,15 +292,20 @@ for line in "$@"; do
 
     ### Setup Destination Directory Structure ###
     destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/${artist:-Various Artists}/${album:-Singles}"
-    while true ; do
-        echo "destination = \"${destdir}\""
-        askyn "Is this the desired destination" confirm
-        if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-            break
-        else
-            read -p "Enter the desired destination: " destdir < /dev/tty
-        fi
-    done
+    echo "destination = \"${destdir}\""
+    askyn "Is this the desired destination" confirm
+    if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
+        destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/Various Artists/${album:-Singles}"
+        while true ; do
+            echo "destination = \"${destdir}\""
+            askyn "Is this the desired destination" confirm
+            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+                break
+            else
+                read -p "Enter the desired destination: " destdir < /dev/tty
+            fi
+        done
+    fi
     if [ ! -d "${destdir}" ] ; then
         mkdir -vp "${destdir}"
     fi
