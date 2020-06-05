@@ -174,7 +174,7 @@ for line in "$@"; do
                 fi
             done
         fi
-        if [ -n "${album}" ] ; then params+=(-A "${album}") ; fi
+        if [ -n "${album}" ] && [ "${album}" != "Unknown Album" ] ; then params+=(-A "${album}") ; fi
 
     ### Verify Year ###
         if [ -z "${year}" ] ; then
