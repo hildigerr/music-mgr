@@ -131,7 +131,7 @@ for line in "$@"; do
         if [ -n "${title}" ] ; then params+=(-t "${title}") ; fi
 
     ### Verify Artist ###
-        askyn "Is \"${artist}\" the correct album artist" iscorrect
+        askyn "Is \"${artist}\" the correct artist" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
             if ${guess} ; then
                 if ${verbose} ; then
@@ -139,7 +139,7 @@ for line in "$@"; do
                 fi
                 artist=`echo ${line} | rev | cut -d/ -f 3 | rev`
             else
-                read -p "Enter the album artist: " artist < /dev/tty
+                read -p "Enter the artist: " artist < /dev/tty
             fi
 
             while true ; do
@@ -291,7 +291,7 @@ for line in "$@"; do
     fi
 
     ### Setup Destination Directory Structure ###
-    destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/${artist:-Various Artists}/${album:-Singles}"
+    destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/${artist:-Unknown Artist}/${album:-Singles}"
     echo "destination = \"${destdir}\""
     askyn "Is this the desired destination" confirm
     if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
@@ -315,7 +315,7 @@ for line in "$@"; do
         echo "filename = \"${filename}\""
         askyn "Is this the desired filename" confirm
         if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
-            filename="${track} - ${title}.${filename##*.}"
+            filename="${track:-${artist}} - ${title}.${filename##*.}"
             while true ; do
                 echo "filename = \"${filename}\""
                 askyn "Is this the desired filename" confirm
