@@ -99,8 +99,17 @@ for line in "$@"; do
     if [ -z "${album}" ] ; then
         album="Unknown Album"
     fi
+    if [ -z "${year}" ] ; then
+        year=`date  +%Y`
+    fi
+    if [ -z "${track}" ] ; then
+        track="01"
+    fi
     if [ -z "${genre}" ] ; then
         genre="Other"
+    fi
+    if [ -z "${comment}" ] ; then
+        comment="${ythash}"
     fi
 
     ### Prepare to Update Tags ###
@@ -177,41 +186,25 @@ for line in "$@"; do
         if [ -n "${album}" ] && [ "${album}" != "Unknown Album" ] ; then params+=(-A "${album}") ; fi
 
     ### Verify Year ###
-        if [ -z "${year}" ] ; then
-            askyn "Do you want to add the album year tag" confirm
-            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-                year=`date  +%Y`
+        while true ; do
+            askyn "Is \"${year}\" the correct album year" iscorrect
+            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                break
+            else
+                read -p "Enter the album year: " year < /dev/tty
             fi
-        fi
-        if [ -n "${year}" ] ; then
-            while true ; do
-                askyn "Is \"${year}\" the correct album year" iscorrect
-                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-                    break
-                else
-                    read -p "Enter the album year: " year < /dev/tty
-                fi
-            done
-        fi
+        done
         if [ -n "${year}" ] ; then params+=(-y "${year}") ; fi
 
     ### Verify Track Number ###
-        if [ -z "${track}" ] ; then
-            askyn "Do you want to add the track number" confirm
-            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-                track="01"
+        while true ; do
+            askyn "Is \"${track}\" the correct track number" iscorrect
+            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                break
+            else
+                read -p "Enter the track number: " track < /dev/tty
             fi
-        fi
-        if [ -n "${track}" ] ; then
-            while true ; do
-                askyn "Is \"${track}\" the correct track number" iscorrect
-                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-                    break
-                else
-                    read -p "Enter the track number: " track < /dev/tty
-                fi
-            done
-        fi
+        done
         if [ -n "${track}" ] ; then params+=(-n "${track}") ; fi
 
     ### Verify Genre ###
@@ -238,22 +231,14 @@ for line in "$@"; do
         if [ -n "${genre}" ] ; then params+=(-g "${genre}") ; fi
 
     ### Verify Comment ###
-        if [ -z "${comment}" ] ; then
-            askyn "Do you want to add a comment tag" confirm
-            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-                comment="${ythash}"
+        while true ; do
+            askyn "Tag with comment \"${comment}\"" iscorrect
+            if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
+                break
+            else
+                read -p "Enter the comment: " comment < /dev/tty
             fi
-        fi
-        if [ -n "${comment}" ] ; then
-            while true ; do
-                askyn "Tag with comment \"${comment}\"" iscorrect
-                if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
-                    break
-                else
-                    read -p "Enter the comment: " comment < /dev/tty
-                fi
-            done
-        fi
+        done
         if [ -n "${comment}" ] ; then params+=(-c "${comment}") ; fi
 
     fi
