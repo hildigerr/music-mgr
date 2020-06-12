@@ -60,6 +60,8 @@ for line in "$@"; do
         read -p "Select format code: " num </dev/tty && echo
         youtube-dl --extract-audio --output "/tmp/%(title)s-%(id)s.%(ext)s" -f "${num}" "${line}"
         line=`ls /tmp/*"${ythash}"* | tail -n1`
+    else
+        ythash=''
     fi
 
     ### Get Basic File Data ###
