@@ -8,19 +8,19 @@
 ### TODO:
 # Edit arbitrary tag fields.
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
-# Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vpg] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vpgy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:m:vpg" o; do
+while getopts ":t:m:vpgy" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
         m) map_genres=${OPTARG} ;;
         v) verbose=true ;;
         p) playbg=true ;;
         g) guess=true ;;
+        y) autoy=true ;;
         *) usage ;;
     esac
 done
@@ -30,6 +30,7 @@ shift $((OPTIND-1))
 if [ -z "${verbose}" ] ; then verbose=false ; fi
 if [ -z "${playbg}" ] ; then playbg=false ; fi
 if [ -z "${guess}" ] ; then guess=false ; fi
+if [ -z "${autoy}" ] ; then autoy=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
 if [ -z "${map_genres}" ] ; then map_genres="${HOME}/.config/map_genres.sh" ; fi
 
@@ -133,7 +134,12 @@ for line in "$@"; do
     echo "year = ${year}"
     echo "genre = ${genre}"
     echo "comment = ${comment}"
-    askyn "Do you trust this file to be tagged correctly" tagok
+    
+    if ${autoy} ; then
+        tagok='Y'
+    else
+        askyn "Do you trust this file to be tagged correctly" tagok
+    fi
     if [ "${tagok}" = 'n' ] || [ "${tagok}" = 'N' ] ; then
 
     ### Verify Title ###
@@ -252,7 +258,7 @@ for line in "$@"; do
     fi
 
     ### Update Tags ###
-    if [ ${#params[@]} -gt 0 ] ; then
+    if ! ${autoy} && [ ${#params[@]} -gt 0 ] ; then
         if ${verbose} ; then
             echo
             echo "title = ${title}"
@@ -282,7 +288,11 @@ for line in "$@"; do
     ### Setup Destination Directory Structure ###
     destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/${artist:-Unknown Artist}/${album:-Singles}"
     echo "destination = \"${destdir}\""
-    askyn "Is this the desired destination" confirm
+    if ${autoy} ; then
+        confirm='Y'
+    else
+        askyn "Is this the desired destination" confirm
+    fi
     if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
         destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/Various Artists/${album:-Singles}"
         while true ; do
@@ -300,19 +310,21 @@ for line in "$@"; do
     fi
 
     ### Verify Filename ###
-    echo "filename = \"${filename}\""
-    askyn "Is this the desired filename" confirm
-    if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
-        filename="${track:-${artist}} - ${title}.${filename##*.}"
-        while true ; do
-            echo "filename = \"${filename}\""
-            askyn "Is this the desired filename" confirm
-            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-                break
-            else
-                read -p "Enter the desired filename: " filename < /dev/tty
-            fi
-        done
+    if ! ${autoy} ; then
+        echo "filename = \"${filename}\""
+        askyn "Is this the desired filename" confirm
+        if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
+            filename="${track:-${artist}} - ${title}.${filename##*.}"
+            while true ; do
+                echo "filename = \"${filename}\""
+                askyn "Is this the desired filename" confirm
+                if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+                    break
+                else
+                    read -p "Enter the desired filename: " filename < /dev/tty
+                fi
+            done
+        fi
     fi
 
     ### Move The File to its Final Destination ###
