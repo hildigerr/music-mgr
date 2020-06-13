@@ -115,9 +115,9 @@ for line in "$@"; do
 
     ### Make Guesses ###
     if ${guess} ; then
-        artist_guess=`echo ${line} | rev | cut -d/ -f 3 | rev`
-        album_guess=`echo ${line} | rev | cut -d/ -f 2 | rev`
-        genre_guess=`echo ${line} | rev | cut -d/ -f 4 | rev`
+        artist_guess=`echo ${line} | rev | cut -d/ -f 3 | rev | sed s/^\.$//`
+        album_guess=`echo ${line} | rev | cut -d/ -f 2 | rev | sed s/^\.$//`
+        genre_guess=`echo ${line} | rev | cut -d/ -f 4 | rev | sed s/^\.$//`
     fi
 
     ### Prepare to Update Tags ###
