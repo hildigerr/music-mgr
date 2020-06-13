@@ -10,15 +10,16 @@
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vpgxy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vpgcxy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:m:vpgxy" o; do
+while getopts ":t:m:vpgcxy" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
         m) map_genres=${OPTARG} ;;
         v) verbose=true ;;
         p) playbg=true ;;
+        c) put=cp ;;
         g) guess=true ;;
         x) autox=true ;;
         y) autoy=true ;;
@@ -30,6 +31,7 @@ shift $((OPTIND-1))
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
 if [ -z "${playbg}" ] ; then playbg=false ; fi
+if [ -z "${put}" ] ; then put=mv ; fi
 if [ -z "${guess}" ] ; then guess=false ; fi
 if [ -z "${autox}" ] ; then autox=false ; fi
 if [ -z "${autoy}" ] ; then autoy=false ; fi
@@ -331,7 +333,7 @@ for line in "$@"; do
 
     ### Move The File to its Final Destination ###
     if [ ! -e "${destdir}/${filename}" ] ; then
-        mv "${line}" "${destdir}/${filename}"
+        ${put} "${line}" "${destdir}/${filename}"
     elif [ "${line}" != "${destdir}/${filename}" ] ; then
         fisz=`du -h "${line}" | cut -f 1`
         fimd=`md5sum "${line}"`
@@ -345,7 +347,7 @@ for line in "$@"; do
             askyn "Do you wish to overwrite the existing file" replace
         fi
         if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
-            mv "${line}" "${destdir}/${filename}"
+            ${put} "${line}" "${destdir}/${filename}"
         else
             if ${autox} ; then
                 remove='N'
