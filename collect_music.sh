@@ -11,15 +11,14 @@
 # Add auto yes iscorrect option.
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vrpg] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vpg] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:m:vrpg" o; do
+while getopts ":t:m:vpg" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
         m) map_genres=${OPTARG} ;;
         v) verbose=true ;;
-        r) renameq=true ;;
         p) playbg=true ;;
         g) guess=true ;;
         *) usage ;;
@@ -29,7 +28,6 @@ shift $((OPTIND-1))
 
 ### Default Values ###
 if [ -z "${verbose}" ] ; then verbose=false ; fi
-if [ -z "${renameq}" ] ; then renameq=false ; fi
 if [ -z "${playbg}" ] ; then playbg=false ; fi
 if [ -z "${guess}" ] ; then guess=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
@@ -280,10 +278,6 @@ for line in "$@"; do
         fi
     fi
 
-    askyn "Is the file already in the desired location" confirm
-    if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-        continue
-    fi
 
     ### Setup Destination Directory Structure ###
     destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/${artist:-Unknown Artist}/${album:-Singles}"
@@ -306,21 +300,19 @@ for line in "$@"; do
     fi
 
     ### Verify Filename ###
-    if $renameq ; then
-        echo "filename = \"${filename}\""
-        askyn "Is this the desired filename" confirm
-        if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
-            filename="${track:-${artist}} - ${title}.${filename##*.}"
-            while true ; do
-                echo "filename = \"${filename}\""
-                askyn "Is this the desired filename" confirm
-                if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
-                    break
-                else
-                    read -p "Enter the desired filename: " filename < /dev/tty
-                fi
-            done
-        fi
+    echo "filename = \"${filename}\""
+    askyn "Is this the desired filename" confirm
+    if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
+        filename="${track:-${artist}} - ${title}.${filename##*.}"
+        while true ; do
+            echo "filename = \"${filename}\""
+            askyn "Is this the desired filename" confirm
+            if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
+                break
+            else
+                read -p "Enter the desired filename: " filename < /dev/tty
+            fi
+        done
     fi
 
     ### Move The File to its Final Destination ###
