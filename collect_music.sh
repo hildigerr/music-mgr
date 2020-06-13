@@ -10,16 +10,17 @@
 # Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vpgy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vpgxy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:m:vpgy" o; do
+while getopts ":t:m:vpgxy" o; do
     case "${o}" in
         t) dest=${OPTARG} ;;
         m) map_genres=${OPTARG} ;;
         v) verbose=true ;;
         p) playbg=true ;;
         g) guess=true ;;
+        x) autox=true ;;
         y) autoy=true ;;
         *) usage ;;
     esac
@@ -30,6 +31,7 @@ shift $((OPTIND-1))
 if [ -z "${verbose}" ] ; then verbose=false ; fi
 if [ -z "${playbg}" ] ; then playbg=false ; fi
 if [ -z "${guess}" ] ; then guess=false ; fi
+if [ -z "${autox}" ] ; then autox=false ; fi
 if [ -z "${autoy}" ] ; then autoy=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
 if [ -z "${map_genres}" ] ; then map_genres="${HOME}/.config/map_genres.sh" ; fi
@@ -337,11 +339,19 @@ for line in "$@"; do
         ffmd=`md5sum "${destdir}/${filename}"`
         echo -e "Size MD5Sum                           Filename"
         echo -e "${fisz} ${fimd}\n${ffsz} ${ffmd}"
-        askyn "Do you wish to overwrite the existing file" replace
+        if ${autox} ; then
+            replace='N'
+        else
+            askyn "Do you wish to overwrite the existing file" replace
+        fi
         if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
             mv "${line}" "${destdir}/${filename}"
         else
-            askyn "Do you wish to keep both files" remove
+            if ${autox} ; then
+                remove='N'
+            else
+                askyn "Do you wish to keep both files" remove
+            fi
             if [ "${remove}" = 'n' ] || [ "${remove}" = 'N' ] ; then
                 rm "${line}"
             fi
