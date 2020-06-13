@@ -340,6 +340,11 @@ for line in "$@"; do
         askyn "Do you wish to overwrite the existing file" replace
         if [ "${replace}" = 'y' ] || [ "${replace}" = 'Y' ] ; then
             mv "${line}" "${destdir}/${filename}"
+        else
+            askyn "Do you wish to keep both files" remove
+            if [ "${remove}" = 'n' ] || [ "${remove}" = 'N' ] ; then
+                rm "${line}"
+            fi
         fi
     fi
 
