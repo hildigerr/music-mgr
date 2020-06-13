@@ -92,6 +92,7 @@ for line in "$@"; do
             ;;
     esac
 
+    ### Default Tag Values ###
     if  [ -z "${title}" ] ; then
         title=${filename}
     fi
@@ -112,6 +113,13 @@ for line in "$@"; do
     fi
     if [ -z "${comment}" ] ; then
         comment="${ythash}"
+    fi
+
+    ### Make Guesses ###
+    if ${guess} ; then
+        artist_guess=`echo ${line} | rev | cut -d/ -f 3 | rev`
+        album_guess=`echo ${line} | rev | cut -d/ -f 2 | rev`
+        genre_guess=`echo ${line} | rev | cut -d/ -f 4 | rev`
     fi
 
     ### Prepare to Update Tags ###
@@ -144,11 +152,11 @@ for line in "$@"; do
     ### Verify Artist ###
         askyn "Is \"${artist}\" the correct artist" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
-            if ${guess} ; then
+            if [ -n "${artist_guess}" ] && [ "${artist_guess}" != "${artist}" ]; then
                 if ${verbose} ; then
                     echo "Guessing artist based on path..."
                 fi
-                artist=`echo ${line} | rev | cut -d/ -f 3 | rev`
+                artist=${artist_guess}
             else
                 read -p "Enter the artist: " artist < /dev/tty
             fi
@@ -167,11 +175,11 @@ for line in "$@"; do
     ### Verify Album ###
         askyn "Is \"${album}\" the correct album name" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
-            if ${guess} ; then
+            if [ -n "${album_guess}" ] && [ "${album_guess}" != "${album}" ] ; then
                 if ${verbose} ; then
                     echo "Guessing album based on path..."
                 fi
-                album=`echo ${line} | rev | cut -d/ -f 2 | rev`
+                album=${album_guess}
             else
                 read -p "Enter the album name: " album < /dev/tty
             fi
@@ -212,11 +220,11 @@ for line in "$@"; do
     ### Verify Genre ###
         askyn "Is \"${genre}\" the correct artist genre" iscorrect
         if [ "${iscorrect}" = 'n' ] || [ "${iscorrect}" = 'N' ] ; then
-            if ${guess} ; then
+            if [ -n "${genre_guess}" ] && [ "${genre_guess}" != "${genre}" ] ; then
                 if ${verbose} ; then
                     echo "Guessing genre based on path..."
                 fi
-                genre=`echo ${line} | rev | cut -d/ -f 4 | rev`
+                genre=${genre_guess}
             else
                 read -p "Enter the artist genre: " genre < /dev/tty
             fi
