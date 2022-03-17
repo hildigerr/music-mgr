@@ -5,9 +5,6 @@
 # 0 == Success
 # 1 == Invalid Parameter Flag
 
-### TODO:
-# Edit arbitrary tag fields.
-# Remove/update deprecated tag fields. https://id3.org/id3v2.4.0-changes
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
 usage() { echo "Usage: $0 [-vpgcxy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
@@ -138,7 +135,7 @@ for line in "$@"; do
     echo "year = ${year}"
     echo "genre = ${genre}"
     echo "comment = ${comment}"
-    
+
     if ${autoy} ; then
         tagok='Y'
     else

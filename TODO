@@ -1,0 +1,12 @@
+Edit arbitrary tag fields
+Remove/update deprecated tag fields <https://id3.org/id3v2.4.0-changes>
+automatically select best audio only
+dont ask if tags are correct if there are no tags
+work with playlists
+add gui wrapper for easy use
+expect local file urls too
+generate music database
+identify duplicates
+catch +/- for year and track guesses
+add skip option at first query
+padd track number with zeros in filename
