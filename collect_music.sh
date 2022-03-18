@@ -23,6 +23,7 @@ while getopts ":t:m:vpgcxy" o; do
         *) usage ;;
     esac
 done
+recursive_options=("${@:1:$((OPTIND-1))}")
 shift $((OPTIND-1))
 
 ### Default Values ###
@@ -52,6 +53,15 @@ fi
 
 for line in "$@"; do
     echo -e "\nFile: ${line}"
+
+    ### Process Playlists ###
+    ythash=${line/https:\/\/www.youtube.com\/playlist?list=}
+    if [ "${ythash}" != "${line}" ] ; then
+        for each in `curl "${line}" | grep -o "watch?v=..........."`; do
+            collect_music "${recursive_options[@]}" "https://www.youtube.com/$each"
+        done
+        continue
+    fi
 
     ### Get Placeholder Song ###
     ythash=${line/https:\/\/www.youtube.com\/watch?v=}
