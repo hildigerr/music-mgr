@@ -25,8 +25,6 @@ set title [lindex $titles $n]
 
 spawn collect_music.sh $url;
 
-expect "Do you trust this file to be tagged correctly (y/n)? "
-send --  "n"
 expect "the correct song title (y/n)? "
 send --  "n"
 expect "Enter the song title: "

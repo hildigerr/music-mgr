@@ -70,6 +70,7 @@ for line in "$@"; do
     data=`mtag -l= "${line}"`
     case $? in
         0)
+            untagged=false
             track=`grep -i -m 1 "^TRACKNUMBER" <<<"${data}" | cut -d= -f 2`
             title=`grep -i -m 1 "^TITLE" <<<"${data}" | cut -d= -f 2`
             artist=`grep -i -m 1 "^ARTIST" <<<"${data}" | cut -d= -f 2`
@@ -81,6 +82,7 @@ for line in "$@"; do
         1|5) echo "ERROR: $0 corrupted!" &  exit 1 ;;
         2|3) if ${verbose} ; then echo "[Unsupported file type, skipping...]" ; fi && continue ;;
         4) # Untagged
+            untagged=true
             track=''
             title=''
             artist=''
@@ -135,7 +137,9 @@ for line in "$@"; do
     echo "genre = ${genre}"
     echo "comment = ${comment}"
 
-    if ${autoy} ; then
+    if [ ! -z ${ythash} ] || $untagged; then
+        tagok='N'
+    elif ${autoy} ; then
         tagok='Y'
     else
         askyn "Do you trust this file to be tagged correctly" tagok
