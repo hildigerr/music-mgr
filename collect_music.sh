@@ -343,6 +343,21 @@ for line in "$@"; do
         fi
     fi
 
+    ### Clean Up Potentially Invalid Characters ###  [**T~h~i~$: is! @^ test?**\\&<ok>;/]
+    artist=`echo "${artist}" | sed -e 's/[*?^!~:|;]//g'`
+    artist=`echo "${artist}" | sed -e 's|[\/]|-|g'`
+    artist=`echo "${artist}" | sed -e 's/</\(/g'`
+    artist=`echo "${artist}" | sed -e 's/>/\)/g'`
+    artist=`echo "${artist}" | sed -e 's/\\\$/S/g'`
+    artist=`echo "${artist}" | sed -e 's/&/and/g'`
+    artist=`echo "${artist}" | sed -e 's/@/at/g'`
+    album=`echo "${album}" | sed -e 's/[*?^!~:|;]//g'`
+    album=`echo "${album}" | sed -e 's|[\/]|-|g'`
+    album=`echo "${album}" | sed -e 's/</\(/g'`
+    album=`echo "${album}" | sed -e 's/>/\)/g'`
+    album=`echo "${album}" | sed -e 's/\\\$/S/g'`
+    album=`echo "${album}" | sed -e 's/&/and/g'`
+    album=`echo "${album}" | sed -e 's/@/at/g'`
 
     ### Setup Destination Directory Structure ###
     destdir="${dest}/${GENRE_DIRMAP[${genre}]:-Other}/${artist:-Unknown Artist}/${album:-Singles}"
