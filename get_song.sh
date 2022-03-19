@@ -1,14 +1,10 @@
 #!/bin/bash
 
-#v0
+#v1
 cd $HOME/Downloads/youtube-dl
-xargs -n1 ./youtube-dl < todo.list
-
-for file in *.mp4 ; do
-  name=`basename "$file" .mp4`
-  echo $name
-  mplayer -vc dummy -vo null -ao pcm:file="$name.wav" "$file"
-  lame -h -b128 "$name.wav" "$name.mp3"
-  rm -v "$name.wav"
-done
+./youtube-dl https://www.youtube.com/watch?v=$1
+origin=`ls *"$1"* | tail -n1`
+ext=`echo "$origin" | tr . \\\n | tail -n1`
+name=`basename "$origin" "$ext"`
+ffmpeg -i "$origin" "${name}mp3" && rm "$origin"
 
