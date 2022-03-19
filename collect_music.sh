@@ -229,6 +229,8 @@ for line in "$@"; do
             askyn "Is \"${year}\" the correct album year" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
+            elif [ "${iscorrect}" = '+' ] ; then year=$((year+1))
+            elif [ "${iscorrect}" = '-' ] ; then year=$((year-1))
             else
                 read -p "Enter the album year: " year < /dev/tty
             fi
@@ -240,6 +242,8 @@ for line in "$@"; do
             askyn "Is \"${track}\" the correct track number" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
+            elif [ "${iscorrect}" = '+' ] ; then track=$((track+1))
+            elif [ "${iscorrect}" = '-' ] ; then track=$((track-1))
             else
                 read -p "Enter the track number: " track < /dev/tty
             fi
