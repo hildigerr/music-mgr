@@ -8,6 +8,8 @@
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
 usage() { echo "Usage: $0 [-vpgcxy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
+quit() { if ${verbose} ; then echo "Exiting..." ; fi; exit 1; }
+skip() { if ${verbose} ; then echo "Skipping..." ; fi; }
 
 ### Variables ###
 while getopts ":Y:G:A:R:t:m:vpgcxy" o; do
@@ -165,6 +167,8 @@ for line in "$@"; do
     else
         askyn "Do you trust this file to be tagged correctly" tagok
     fi
+    if [ "${tagok}" = 'X' ] ; then quit ; fi
+    if [ "${tagok}" = 'S' ] ; then skip && continue ; fi
     if [ "${tagok}" = 'n' ] || [ "${tagok}" = 'N' ] ; then
 
     ### Verify Title ###
@@ -172,10 +176,13 @@ for line in "$@"; do
             askyn "Is \"${title}\" the correct song title" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
+            elif [ "${iscorrect}" = 'X' ] ; then quit
+            elif [ "${iscorrect}" = 'S' ] ; then break
             else
                 read -p "Enter the song title: " title < /dev/tty
             fi
         done
+        if [ "${iscorrect}" = 'S' ] ; then skip && continue ; fi
         if [ -n "${title}" ] ; then params+=(-t "${title}") ; fi
 
     ### Verify Artist ###
@@ -194,11 +201,15 @@ for line in "$@"; do
                 askyn "Is \"${artist}\" the correct artist" iscorrect
                 if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                     break
+                elif [ "${iscorrect}" = 'X' ] || [ "${iscorrect}" = 'S' ] ; then
+                    break
                 else
                     read -p "Enter the artist(s): " artist < /dev/tty
                 fi
             done
         fi
+        if [ "${iscorrect}" = 'X' ] ; then quit ; fi
+        if [ "${iscorrect}" = 'S' ] ; then skip && continue ; fi
         if [ -n "${artist}" ] ; then params+=(-a "${artist}") ; fi
 
     ### Verify Album ###
@@ -217,11 +228,15 @@ for line in "$@"; do
                 askyn "Is \"${album}\" the correct album name" iscorrect
                 if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                     break
+                elif [ "${iscorrect}" = 'X' ] || [ "${iscorrect}" = 'S' ] ; then
+                    break
                 else
                     read -p "Enter the album name: " album < /dev/tty
                 fi
             done
         fi
+        if [ "${iscorrect}" = 'X' ] ; then quit ; fi
+        if [ "${iscorrect}" = 'S' ] ; then skip && continue ; fi
         if [ -n "${album}" ] && [ "${album}" != "Unknown Album" ] ; then params+=(-A "${album}") ; fi
 
     ### Verify Year ###
@@ -229,12 +244,15 @@ for line in "$@"; do
             askyn "Is \"${year}\" the correct album year" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
+            elif [ "${iscorrect}" = 'X' ] ; then quit
+            elif [ "${iscorrect}" = 'S' ] ; then break
             elif [ "${iscorrect}" = '+' ] ; then year=$((year+1))
             elif [ "${iscorrect}" = '-' ] ; then year=$((year-1))
             else
                 read -p "Enter the album year: " year < /dev/tty
             fi
         done
+        if [ "${iscorrect}" = 'S' ] ; then skip && continue ; fi
         if [ -n "${year}" ] ; then params+=(-y "${year}") ; fi
 
     ### Verify Track Number ###
@@ -242,12 +260,15 @@ for line in "$@"; do
             askyn "Is \"${track}\" the correct track number" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
+            elif [ "${iscorrect}" = 'X' ] ; then quit
+            elif [ "${iscorrect}" = 'S' ] ; then break
             elif [ "${iscorrect}" = '+' ] ; then track=$((track+1))
             elif [ "${iscorrect}" = '-' ] ; then track=$((track-1))
             else
                 read -p "Enter the track number: " track < /dev/tty
             fi
         done
+        if [ "${iscorrect}" = 'S' ] ; then skip && continue ; fi
         if [ -n "${track}" ] ; then params+=(-n "${track}") ; fi
 
     ### Verify Genre ###
@@ -266,11 +287,15 @@ for line in "$@"; do
                 askyn "Is \"${genre}\" the correct artist genre" iscorrect
                 if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                     break
+                elif [ "${iscorrect}" = 'X' ] || [ "${iscorrect}" = 'S' ] ; then
+                    break
                 else
                     read -p "Enter the artist genre: " genre < /dev/tty
                 fi
             done
         fi
+        if [ "${iscorrect}" = 'X' ] ; then quit ; fi
+        if [ "${iscorrect}" = 'S' ] ; then skip && continue ; fi
         if [ -n "${genre}" ] ; then params+=(-g "${genre}") ; fi
 
     ### Verify Comment ###
@@ -278,10 +303,13 @@ for line in "$@"; do
             askyn "Tag with comment \"${comment}\"" iscorrect
             if [ "${iscorrect}" = 'y' ] || [ "${iscorrect}" = 'Y' ] ; then
                 break
+            elif [ "${iscorrect}" = 'X' ] ; then quit
+            elif [ "${iscorrect}" = 'S' ] ; then break
             else
                 read -p "Enter the comment: " comment < /dev/tty
             fi
         done
+        if [ "${iscorrect}" = 'S' ] ; then skip && continue ; fi
         if [ -n "${comment}" ] ; then params+=(-c "${comment}") ; fi
 
     fi
@@ -299,6 +327,8 @@ for line in "$@"; do
             echo "comment = ${comment}"
         fi
         askyn "Ok to write the tags" confirm
+        if [ "${confirm}" = 'X' ] ; then quit ; fi
+        if [ "${confirm}" = 'S' ] ; then skip && continue ; fi
         if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
             echo "Writing the tags..."
             mtag "${params[@]}" "${line}"
@@ -329,11 +359,15 @@ for line in "$@"; do
             askyn "Is this the desired destination" confirm
             if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
                 break
+            elif [ "${confirm}" = 'X' ] || [ "${confirm}" = 'S' ] ; then
+                break
             else
                 read -p "Enter the desired destination: " destdir < /dev/tty
             fi
         done
     fi
+    if [ "${confirm}" = 'X' ] ; then quit ; fi
+    if [ "${confirm}" = 'S' ] ; then skip && continue ; fi
     if [ ! -d "${destdir}" ] ; then
         mkdir -vp "${destdir}"
     fi
@@ -350,11 +384,15 @@ for line in "$@"; do
                 askyn "Is this the desired filename" confirm
                 if [ "${confirm}" = 'y' ] || [ "${confirm}" = 'Y' ] ; then
                     break
+                elif [ "${confirm}" = 'X' ] || [ "${confirm}" = 'S' ] ; then
+                    break
                 else
                     read -p "Enter the desired filename: " filename < /dev/tty
                 fi
             done
         fi
+        if [ "${confirm}" = 'X' ] ; then quit ; fi
+        if [ "${confirm}" = 'S' ] ; then skip && continue ; fi
     fi
 
     ### Move The File to its Final Destination ###

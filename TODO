@@ -3,4 +3,3 @@ Remove/update deprecated tag fields <https://id3.org/id3v2.4.0-changes>
 add gui wrapper for easy use
 generate music database
 identify duplicates
-add skip option at first query
