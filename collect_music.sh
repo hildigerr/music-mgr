@@ -10,8 +10,12 @@ askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
 usage() { echo "Usage: $0 [-vpgcxy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
 
 ### Variables ###
-while getopts ":t:m:vpgcxy" o; do
+while getopts ":Y:G:A:R:t:m:vpgcxy" o; do
     case "${o}" in
+        Y) default_year=${OPTARG} ;;
+        G) default_genre=${OPTARG} ;;
+        A) default_artist=${OPTARG} ;;
+        R) default_album=${OPTARG} ;;
         t) dest=${OPTARG} ;;
         m) map_genres=${OPTARG} ;;
         v) verbose=true ;;
@@ -35,6 +39,10 @@ if [ -z "${autox}" ] ; then autox=false ; fi
 if [ -z "${autoy}" ] ; then autoy=false ; fi
 if [ -z "${dest}" ] ; then dest="${HOME}/Music" ; fi
 if [ -z "${map_genres}" ] ; then map_genres="${HOME}/.config/map_genres.sh" ; fi
+if [ -z "${default_artist}" ] ; then default_artist="Various Artists" ; fi
+if [ -z "${default_album}" ] ; then default_album="Unknown Album" ; fi
+if [ -z "${default_genre}" ] ; then default_genre="Other" ; fi
+if [ -z "${default_year}" ] ; then default_year=`date  +%Y` ; fi
 
 if [ ! -e "${map_genres}" ] ; then
     if ${verbose} ; then echo "Generating genre map: \"${map_genres}\"" ; fi
@@ -108,19 +116,19 @@ for line in "$@"; do
         title=${filename}
     fi
     if [ -z "${artist}" ] || [ "${artist}" = "Various" ] ; then
-        artist="Various Artists"
+        artist="${default_artist}"
     fi
     if [ -z "${album}" ] ; then
-        album="Unknown Album"
+        album="${default_album}"
     fi
     if [ -z "${year}" ] ; then
-        year=`date  +%Y`
+        year="${default_year}"
     fi
     if [ -z "${track}" ] ; then
         track="01"
     fi
     if [ -z "${genre}" ] ; then
-        genre="Other"
+        genre="${default_genre}"
     fi
     if [ -z "${comment}" ] ; then
         comment="${ythash}"
