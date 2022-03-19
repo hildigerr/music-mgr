@@ -4,6 +4,11 @@
 cd $HOME/Downloads/youtube-dl
 xargs -n1 ./youtube-dl < todo.list
 
-# This is the command that I came up with first. However, it does not convert the raw audio to mp3
-ls *.mp4 | awk -F'\n' '{print "--nogui --load \"" $1 "\" --save-raw-audio \"" $1 ".mp3\" \"" $1 "\" --quit" }' | xargs -n1 avidemux_cli
+for file in *.mp4 ; do
+  name=`basename "$file" .mp4`
+  echo $name
+  mplayer -vc dummy -vo null -ao pcm:file="$name.wav" "$file"
+  lame -h -b128 "$name.wav" "$name.mp3"
+  rm -v "$name.wav"
+done
 
