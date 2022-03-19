@@ -113,7 +113,10 @@ for line in "$@"; do
 
     ### Default Tag Values ###
     if  [ -z "${title}" ] ; then
-        title=${filename}
+        title="${filename%.*}"
+        if [ ! -z "${ythash}" ] ; then
+            title=`echo "${title}" | sed -e "s/.${ythash}//"`
+        fi
     fi
     if [ -z "${artist}" ] || [ "${artist}" = "Various" ] ; then
         artist="${default_artist}"
