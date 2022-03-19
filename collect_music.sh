@@ -128,7 +128,7 @@ for line in "$@"; do
         year="${default_year}"
     fi
     if [ -z "${track}" ] ; then
-        track="01"
+        track=1
     fi
     if [ -z "${genre}" ] ; then
         genre="${default_genre}"
@@ -343,6 +343,7 @@ for line in "$@"; do
         echo "filename = \"${filename}\""
         askyn "Is this the desired filename" confirm
         if [ "${confirm}" = 'n' ] || [ "${confirm}" = 'N' ] ; then
+            if [ ! -z "${track}" ] ; then track=`printf "%02d" "${track}"` ;  fi
             filename="${track:-${artist}} - ${title}.${filename##*.}"
             while true ; do
                 echo "filename = \"${filename}\""

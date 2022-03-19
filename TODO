@@ -4,4 +4,3 @@ add gui wrapper for easy use
 generate music database
 identify duplicates
 add skip option at first query
-padd track number with zeros in filename
