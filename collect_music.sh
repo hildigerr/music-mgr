@@ -7,7 +7,7 @@
 
 
 askyn() { read -s -n 1 -p "$1 (y/n)? " $2 </dev/tty && echo; }
-usage() { echo "Usage: $0 [-vpgcxy] [-t <target directory>] [-m genre map file] FILE..." 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-vpgcxy] [-t <target directory>] [-m genre map file] -Y year -G genre -A artist -R album -N track FILE..." 1>&2; exit 1; }
 quit() { if ${verbose} ; then echo "Exiting..." ; fi; exit 1; }
 skip() { if ${verbose} ; then echo "Skipping..." ; fi; }
 
