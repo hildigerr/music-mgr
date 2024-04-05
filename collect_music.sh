@@ -12,12 +12,13 @@ quit() { if ${verbose} ; then echo "Exiting..." ; fi; exit 1; }
 skip() { if ${verbose} ; then echo "Skipping..." ; fi; }
 
 ### Variables ###
-while getopts ":Y:G:A:R:t:m:vpgcxy" o; do
+while getopts ":Y:G:A:R:N:t:m:vpgcxy" o; do
     case "${o}" in
         Y) default_year=${OPTARG} ;;
         G) default_genre=${OPTARG} ;;
         A) default_artist=${OPTARG} ;;
         R) default_album=${OPTARG} ;;
+        N) default_track=${OPTARG} ;;
         t) dest=${OPTARG} ;;
         m) map_genres=${OPTARG} ;;
         v) verbose=true ;;
@@ -45,6 +46,7 @@ if [ -z "${default_artist}" ] ; then default_artist="Various Artists" ; fi
 if [ -z "${default_album}" ] ; then default_album="Unknown Album" ; fi
 if [ -z "${default_genre}" ] ; then default_genre="Other" ; fi
 if [ -z "${default_year}" ] ; then default_year=`date  +%Y` ; fi
+if [ -z "${default_track}" ] ; then default_track=1 ; fi
 
 if [ ! -e "${map_genres}" ] ; then
     if ${verbose} ; then echo "Generating genre map: \"${map_genres}\"" ; fi
@@ -67,8 +69,9 @@ for line in "$@"; do
     ### Process Playlists ###
     ythash=${line/https:\/\/www.youtube.com\/playlist?list=}
     if [ "${ythash}" != "${line}" ] ; then
-        for each in `curl "${line}" | grep -o "watch?v=..........."`; do
-            collect_music "${recursive_options[@]}" "https://www.youtube.com/$each"
+        for each in `curl "${line}" | grep -o "watch?v=..........." | uniq`; do
+            collect_music "${recursive_options[@]}" -N "${default_track}" "https://www.youtube.com/$each"
+            default_track=$((default_track+1))
         done
         continue
     fi
@@ -130,7 +133,7 @@ for line in "$@"; do
         year="${default_year}"
     fi
     if [ -z "${track}" ] ; then
-        track=1
+        track="${default_track}"
     fi
     if [ -z "${genre}" ] ; then
         genre="${default_genre}"
