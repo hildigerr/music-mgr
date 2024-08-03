@@ -70,7 +70,7 @@ for line in "$@"; do
     ythash=${line/https:\/\/www.youtube.com\/playlist?list=}
     if [ "${ythash}" != "${line}" ] ; then
         for each in `curl "${line}" | grep -o "watch?v=..........." | uniq`; do
-            collect_music "${recursive_options[@]}" -N "${default_track}" "https://www.youtube.com/$each"
+            $0 "${recursive_options[@]}" -N "${default_track}" "https://www.youtube.com/$each"
             default_track=$((default_track+1))
         done
         continue
