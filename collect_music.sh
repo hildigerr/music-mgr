@@ -79,8 +79,8 @@ for line in "$@"; do
     ### Get Placeholder Song ###
     ythash=${line/https:\/\/www.youtube.com\/watch?v=}
     if [ "${ythash}" != "${line}" ] ; then
-        num=`youtube-dl -F "${line}" | grep audio | tail -n 1 | awk '{print $1}'`
-        youtube-dl --extract-audio --output "/tmp/%(title)s-%(id)s.%(ext)s" -f "${num}" "${line}"
+        num=`yt-dlp -F "${line}" | grep audio | tail -n 1 | awk '{print $1}'`
+        yt-dlp --extract-audio --output "/tmp/%(title)s-%(id)s.%(ext)s" -f "${num}" "${line}"
         line=`ls /tmp/*"${ythash}"* | tail -n1`
     else
         ythash=''
