@@ -1,5 +1,7 @@
 #!/bin/bash
 
+if [ $# -eq 0 ]; then $0 "$HOME/Music/"; fi
+
 for each in "$@"; do
   if [ -d "${each}" ] ; then
     echo "Generating Random Playlist: \"${each}\""
