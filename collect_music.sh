@@ -155,13 +155,13 @@ for line in "$@"; do
         killall play 2>/dev/null
         play -q "${line}" &
     fi
-    echo "track = ${track}"
-    echo "title = ${title}"
-    echo "artist = ${artist}"
-    echo "album = ${album}"
-    echo "year = ${year}"
-    echo "genre = ${genre}"
-    echo "comment = ${comment}"
+    echo "  track   = ${track}"
+    echo "  title   = ${title}"
+    echo "  artist  = ${artist}"
+    echo "  album   = ${album}"
+    echo "  year    = ${year}"
+    echo "  genre   = ${genre}"
+    echo "  comment = ${comment}"
 
     if [ ! -z ${ythash} ] || $untagged; then
         tagok='N'
@@ -321,13 +321,13 @@ for line in "$@"; do
     if ! ${autoy} && [ ${#params[@]} -gt 0 ] ; then
         if ${verbose} ; then
             echo
-            echo "title = ${title}"
-            echo "artist = ${artist}"
-            echo "album = ${album/Unknown Album/}"
-            echo "year = ${year}"
-            echo "track = ${track}"
-            echo "genre = ${genre}"
-            echo "comment = ${comment}"
+            echo "  title   = ${title}"
+            echo "  artist  = ${artist}"
+            echo "  album   = ${album/Unknown Album/}"
+            echo "  year    = ${year}"
+            echo "  track   = ${track}"
+            echo "  genre   = ${genre}"
+            echo "  comment = ${comment}"
         fi
         askyn "Ok to write the tags" confirm
         if [ "${confirm}" = 'X' ] ; then quit ; fi
