@@ -15,6 +15,8 @@ for each in "$@"; do
       image/jpeg) ;&
       image/png)
         chafa "${each}" 2>/dev/null ;; #XXX
+      audio/midi)
+        fluidsynth "${each}" ;;
       audio/flac) ;&
       audio/mpeg) ;&
       audio/ogg) ;&
