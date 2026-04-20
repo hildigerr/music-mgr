@@ -29,7 +29,7 @@ for each in "$@"; do
       image/png)
         chafa "${each}" 2>/dev/null ;; #XXX
       audio/midi)
-        echo "\n${each}\n"
+        echo -e "\n${each}:\n"
         fluidsynth -i "${each}" 2>/dev/null &
         ppid=$!
         while kill -0 "${ppid}" 2>/dev/null; do
@@ -49,7 +49,7 @@ for each in "$@"; do
         done
       ;;
       audio/x-mod)
-        echo "\n${each}\n"
+        echo -e "\n${each}:\n"
         cvlc --play-and-exit "${each}" &
         ppid=$!
         while kill -0 "${ppid}" 2>/dev/null; do
