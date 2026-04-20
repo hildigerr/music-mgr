@@ -48,6 +48,14 @@ for each in "$@"; do
           wait "${ppid}" 2>/dev/null
         done
       ;;
+      audio/x-mod)
+        echo "\n${each}\n"
+        cvlc --play-and-exit "${each}" &
+        ppid=$!
+        while kill -0 "${ppid}" 2>/dev/null; do
+          wait "${ppid}" 2>/dev/null
+        done
+      ;;
       *) echo "Unhandled Filetype: \"${each}\"" ;;
     esac
   fi
