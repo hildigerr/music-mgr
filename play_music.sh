@@ -66,7 +66,10 @@ for each in "$@"; do
           wait "${ppid}" 2>/dev/null
         done
       ;;
-      *) echo "Unhandled Filetype: \"${each}\"" ;;
+      *)
+        echo -e "\n${each}:\n"
+        echo -e "\tUnhandled Filetype: $(file --mime-type -b "${each}")"
+      ;;
     esac
   else
     echo -e "\n${each}:\nTrying..."
