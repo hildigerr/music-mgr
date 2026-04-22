@@ -4,6 +4,12 @@ MAGIC_TAG0="#!$0"
 MAGIC_TAG1="#!$(basename $0)"
 MAGIC_TAG2="#!/usr/bin/env $(basename "$0")"
 
+cleanup() {
+  trap - TERM
+  kill -TERM 0 2>/dev/null
+  exit 0
+}
+
 toggle_pause() {
   if [ -n "${ppid}" ] && ps -p "${ppid}" >/dev/null; then
     if ps -o state= -p "${ppid}" | grep -q "T"; then
@@ -14,6 +20,7 @@ toggle_pause() {
   fi
 }
 
+trap cleanup TERM
 trap toggle_pause SIGUSR1
 
 if [ $# -eq 0 ]; then exec "$0" "$HOME/Music/"; fi

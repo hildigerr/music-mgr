@@ -6,6 +6,6 @@
     m:0x10 + c:171
     Mod2 + XF86AudioNext
 
-"killall play_music & killall play"
+"killall play_music"
     m:0x10 + c:174
     Mod2 + XF86AudioStop
