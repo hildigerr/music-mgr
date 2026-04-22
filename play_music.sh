@@ -1,5 +1,9 @@
 #!/bin/bash
 
+MAGIC_TAG0="#!$0"
+MAGIC_TAG1="#!$(basename $0)"
+MAGIC_TAG2="#!/usr/bin/env $(basename "$0")"
+
 toggle_pause() {
   if [ -n "${ppid}" ] && ps -p "${ppid}" >/dev/null; then
     if ps -o state= -p "${ppid}" | grep -q "T"; then
@@ -18,12 +22,18 @@ for each in "$@"; do
   unset ppid
   if [ -d "${each}" ] ; then
     echo "Generating Random Playlist: \"${each}\""
-    find "${each}" -type f -print0 | sort -Rz | xargs -0 $0
+    find "${each}" -type f -print0 | sort -Rz | xargs -0 "$0"
   elif [ -f "${each}" ] ; then
     case $(file --mime-type -b "${each}") in
       text/plain)
+        headline=$(head -n 1 "${each}" 2>/dev/null)
+        if [ "$headline" != "$MAGIC_TAG0" ] && \
+           [ "$headline" != "$MAGIC_TAG1" ] && \
+           [ "$headline" != "$MAGIC_TAG2" ]; then
+           continue
+        fi
         echo "Playing Playlist: \"${each}\""
-        xargs -0 --arg-file "${each}" --delimiter "\n" $0 ;;
+        tail -n +2 "${each}" | xargs --delimiter "\n" "$0" ;;
       image/gif) ;&
       image/jpeg) ;&
       image/png)
