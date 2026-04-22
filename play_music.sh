@@ -72,11 +72,34 @@ for each in "$@"; do
       ;;
     esac
   else
-    echo -e "\n${each}:\nTrying..."
+    echo -en "\n${each}:\n\n  Trying: "
     cvlc --play-and-exit "${each}" &
     ppid=$!
+    metaint=$(
+      curl -sI -H "Icy-MetaData: 1" "$each" |
+      awk -F': *' 'tolower($1)=="icy-metaint"{gsub("\r","",$2); print $2}'
+    )
+    if [ -n "$metaint" ] && [ "$metaint" -gt 0 ]; then
+      (
+        StreamTitle=""
+        while true; do
+          StreamTitleNow=$(ffprobe -v quiet \
+            -show_entries format_tags=StreamTitle \
+            -of default=nw=1:nk=1 "$each")
+          if [ -n "$StreamTitleNow" ] && \
+             [ "$StreamTitleNow" != "$StreamTitle" ]; then
+             echo "    $StreamTitleNow"
+             StreamTitle="$StreamTitleNow"
+          fi
+          sleep 15
+        done
+      ) &
+      mpid=$!
+    fi
+
     while kill -0 "${ppid}" 2>/dev/null; do
       wait "${ppid}" 2>/dev/null
     done
+    [ -n "$mpid" ] && kill "$mpid" 2>/dev/null
   fi
 done
