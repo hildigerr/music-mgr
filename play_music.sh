@@ -87,6 +87,7 @@ for each in "$@"; do
       ;;
     esac
   else
+    if [ "${each%${each#?}}" = "#" ]; then continue; fi
     echo -en "\n${each}:\n\n  Trying: "
     cvlc --play-and-exit "${each}" &
     ppid=$!
