@@ -20,8 +20,15 @@ toggle_pause() {
   fi
 }
 
+skip() {
+  if [ -n "${ppid}" ] && ps -p "${ppid}" >/dev/null; then
+    kill "${ppid}" 2>/dev/null
+  fi
+}
+
 trap cleanup TERM
 trap toggle_pause SIGUSR1
+trap skip SIGUSR2
 
 if [ $# -eq 0 ]; then exec "$0" "$HOME/Music/"; fi
 
