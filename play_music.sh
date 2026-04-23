@@ -72,6 +72,7 @@ for each in "$@"; do
           wait "${ppid}" 2>/dev/null
         done
       ;;
+      video/x-ms-asf) ;&
       audio/x-mod)
         echo -e "\n${each}:\n"
         cvlc --play-and-exit "${each}" &
