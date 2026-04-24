@@ -9,7 +9,7 @@ NSID_F="${XDG_RUNTIME_DIR:-/dev/shm}/${APP_NAME}_nsid.$UID"
 notify() {
   local nsid=$(cat "${NSID_F}" 2>/dev/null)
   nsid="$(
-    notify-send --app-name="${APP_NAME}" \
+    notify-send --app-name="${APP_NAME}" "$@" \
       --icon=${icon:-applications-multimedia} \
       --print-id $( if [ -n "${nsid}" ]; then
           printf "%s" "--replace-id=${nsid}"
@@ -31,7 +31,7 @@ monitor() {
 cleanup() {
   icon=media-playback-stop
   status=Aborted
-  notify
+  notify --transient
   trap - TERM
   kill -TERM 0 2>/dev/null
   exit 0
@@ -148,3 +148,6 @@ for each in "$@"; do
     [ -n "$mpid" ] && kill "$mpid" 2>/dev/null
   fi
 done
+status=Ended
+message="Thanks for listening!"
+notify --transient
