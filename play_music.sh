@@ -59,6 +59,44 @@ skip() {
   fi
 }
 
+get_metadata() {
+  local fp="${1:-XXX/Unknown/Unknown/Error}"
+  local data="$(mtag --list "$fp" 2>/dev/null)"
+
+  # Verify file has tag
+  #if [ $? -eq 0 ]; then
+
+  # Verify tag at least has the title
+  if echo "${data}" | grep -q "TITLE"; then
+
+    echo "${data}" | awk -F': ' '{
+      data[$1]=$2
+      genre  = (data["GENRE"]  ? data["GENRE"]  : "XXX")
+      title  = (data["TITLE"]  ? data["TITLE"]  : "Unknown")
+      artist = (data["ARTIST"] ? data["ARTIST"] : "Unknown")
+      album  = (data["ALBUM"]  ? data["ALBUM"]  : "Unknown")
+    } END {
+      print "[" genre "]: " title
+      print "Artist: " artist
+      print "Album: " album
+    }'
+  else # Guess Metadata From Path
+    echo "Best Guess:"
+    echo "${fp}" | awk -F/ '{
+      n = NF
+
+      genre = (n >= 4 ? $(n-3) : "XXX")
+      artist = (n >= 3 ? $(n-2) : "Unknown")
+      album = (n >= 2 ? $(n-1) : "Unknown")
+      title = $n
+
+      print "[" genre "]: " title
+      print "Artist: " artist
+      print "Album: " album
+    }'
+  fi
+}
+
 trap cleanup TERM
 trap toggle_pause SIGUSR1
 trap skip SIGUSR2
@@ -92,6 +130,7 @@ for each in "$@"; do
         chafa "${each}" 2>/dev/null ;; #XXX
       audio/midi)
         echo -e "\n${each}:\n"
+        message="$(get_metadata "${each}")"
         fluidsynth -i "${each}" 2>/dev/null &
         ppid=$!
         monitor
@@ -102,6 +141,7 @@ for each in "$@"; do
       audio/x-aiff) ;&
       audio/x-m4a) ;&
       audio/x-wav)
+        message="$(get_metadata "${each}")"
         play "${each}" &
         ppid=$!
         monitor
@@ -109,6 +149,7 @@ for each in "$@"; do
       video/x-ms-asf) ;&
       audio/x-mod)
         echo -e "\n${each}:\n"
+        message="$(get_metadata "${each}")"
         cvlc --play-and-exit "${each}" &
         ppid=$!
         monitor
