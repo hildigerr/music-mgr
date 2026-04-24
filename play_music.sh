@@ -5,6 +5,12 @@ MAGIC_TAG0="#!$0"
 MAGIC_TAG1="#!${APP_NAME}"
 MAGIC_TAG2="#!/usr/bin/env ${APP_NAME}"
 
+monitor() {
+  while kill -0 "${ppid}" 2>/dev/null; do
+    wait "${ppid}" 2>/dev/null
+  done
+}
+
 cleanup() {
   trap - TERM
   kill -TERM 0 2>/dev/null
@@ -57,9 +63,7 @@ for each in "$@"; do
         echo -e "\n${each}:\n"
         fluidsynth -i "${each}" 2>/dev/null &
         ppid=$!
-        while kill -0 "${ppid}" 2>/dev/null; do
-          wait "${ppid}" 2>/dev/null
-        done
+        monitor
       ;;
       audio/flac) ;&
       audio/mpeg) ;&
@@ -69,18 +73,14 @@ for each in "$@"; do
       audio/x-wav)
         play "${each}" &
         ppid=$!
-        while kill -0 "${ppid}" 2>/dev/null; do
-          wait "${ppid}" 2>/dev/null
-        done
+        monitor
       ;;
       video/x-ms-asf) ;&
       audio/x-mod)
         echo -e "\n${each}:\n"
         cvlc --play-and-exit "${each}" &
         ppid=$!
-        while kill -0 "${ppid}" 2>/dev/null; do
-          wait "${ppid}" 2>/dev/null
-        done
+        monitor
       ;;
       *)
         echo -e "\n${each}:\n"
@@ -90,8 +90,6 @@ for each in "$@"; do
   else
     if [ "${each%${each#?}}" = "#" ]; then continue; fi
     echo -en "\n${each}:\n\n  Trying: "
-    cvlc --play-and-exit "${each}" &
-    ppid=$!
     metaint=$(
       curl -sI -H "Icy-MetaData: 1" "$each" |
       awk -F': *' 'tolower($1)=="icy-metaint"{gsub("\r","",$2); print $2}'
@@ -113,10 +111,9 @@ for each in "$@"; do
       ) &
       mpid=$!
     fi
-
-    while kill -0 "${ppid}" 2>/dev/null; do
-      wait "${ppid}" 2>/dev/null
-    done
+    cvlc --play-and-exit "${each}" &
+    ppid=$!
+    monitor
     [ -n "$mpid" ] && kill "$mpid" 2>/dev/null
   fi
 done
