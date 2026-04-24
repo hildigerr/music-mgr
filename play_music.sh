@@ -69,7 +69,9 @@ for each in "$@"; do
   unset icon status message mpid ppid
   if [ -d "${each}" ] ; then
     echo "Generating Random Playlist: \"${each}\""
+    trap - TERM
     find "${each}" -type f -print0 | sort -Rz | xargs -0 "$0"
+    trap cleanup TERM
   elif [ -f "${each}" ] ; then
     case $(file --mime-type -b "${each}") in
       text/plain)
@@ -80,7 +82,10 @@ for each in "$@"; do
            continue
         fi
         echo "Playing Playlist: \"${each}\""
-        tail -n +2 "${each}" | xargs --delimiter "\n" "$0" ;;
+        trap - TERM
+        tail -n +2 "${each}" | xargs --delimiter "\n" "$0"
+        trap cleanup TERM
+      ;;
       image/gif) ;&
       image/jpeg) ;&
       image/png)
