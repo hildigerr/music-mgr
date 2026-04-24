@@ -32,8 +32,9 @@ cleanup() {
   icon=media-playback-stop
   status=Aborted
   notify --transient
+  [ -n "${ppid}" ] && kill -TERM "${ppid}" 2>/dev/null
+  [ -n "${mpid}" ] && kill -TERM "${mpid}" 2>/dev/null
   trap - TERM
-  kill -TERM 0 2>/dev/null
   exit 0
 }
 
