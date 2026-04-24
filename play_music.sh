@@ -1,8 +1,9 @@
 #!/bin/bash
 
+APP_NAME="$(basename "$0")"
 MAGIC_TAG0="#!$0"
-MAGIC_TAG1="#!$(basename $0)"
-MAGIC_TAG2="#!/usr/bin/env $(basename "$0")"
+MAGIC_TAG1="#!${APP_NAME}"
+MAGIC_TAG2="#!/usr/bin/env ${APP_NAME}"
 
 cleanup() {
   trap - TERM
