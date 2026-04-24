@@ -161,13 +161,17 @@ for each in "$@"; do
     esac
   else
     if [ "${each%${each#?}}" = "#" ]; then continue; fi
+    message="${each}"
     echo -en "\n${each}:\n\n  Trying: "
+    cvlc --play-and-exit "${each}" &
+    ppid=$!
     metaint=$(
       curl -sI -H "Icy-MetaData: 1" "$each" |
       awk -F': *' 'tolower($1)=="icy-metaint"{gsub("\r","",$2); print $2}'
     )
     if [ -n "$metaint" ] && [ "$metaint" -gt 0 ]; then
       (
+        status=Streaming
         StreamTitle=""
         while true; do
           StreamTitleNow=$(ffprobe -v quiet \
@@ -175,6 +179,8 @@ for each in "$@"; do
             -of default=nw=1:nk=1 "$each")
           if [ -n "$StreamTitleNow" ] && \
              [ "$StreamTitleNow" != "$StreamTitle" ]; then
+             message="$StreamTitleNow"
+             notify
              echo "    $StreamTitleNow"
              StreamTitle="$StreamTitleNow"
           fi
@@ -182,9 +188,9 @@ for each in "$@"; do
         done
       ) &
       mpid=$!
+    else
+      echo "    Stream does not provide metadata."
     fi
-    cvlc --play-and-exit "${each}" &
-    ppid=$!
     monitor
     [ -n "$mpid" ] && kill "$mpid" 2>/dev/null
   fi
