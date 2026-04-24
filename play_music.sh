@@ -4,14 +4,34 @@ APP_NAME="$(basename "$0")"
 MAGIC_TAG0="#!$0"
 MAGIC_TAG1="#!${APP_NAME}"
 MAGIC_TAG2="#!/usr/bin/env ${APP_NAME}"
+NSID_F="${XDG_RUNTIME_DIR:-/dev/shm}/${APP_NAME}_nsid.$UID"
+
+notify() {
+  local nsid=$(cat "${NSID_F}" 2>/dev/null)
+  nsid="$(
+    notify-send --app-name="${APP_NAME}" \
+      --icon=${icon:-applications-multimedia} \
+      --print-id $( if [ -n "${nsid}" ]; then
+          printf "%s" "--replace-id=${nsid}"
+        fi) \
+      "${status:-Loading}" "${message:-Please Wait...}" 2>/dev/null
+  )"
+  echo "${nsid}" > "${NSID_F}"
+}
 
 monitor() {
+  icon=media-playback-start
+  status=Playing
+  notify
   while kill -0 "${ppid}" 2>/dev/null; do
     wait "${ppid}" 2>/dev/null
   done
 }
 
 cleanup() {
+  icon=media-playback-stop
+  status=Aborted
+  notify
   trap - TERM
   kill -TERM 0 2>/dev/null
   exit 0
@@ -21,8 +41,14 @@ toggle_pause() {
   if [ -n "${ppid}" ] && ps -p "${ppid}" >/dev/null; then
     if ps -o state= -p "${ppid}" | grep -q "T"; then
       kill -CONT "${ppid}"
+      icon=media-playback-start
+      status=Playing
+      notify
     else
       kill -STOP "${ppid}"
+      icon=media-playback-pause
+      status=Paused
+      notify
     fi
   fi
 }
@@ -40,7 +66,7 @@ trap skip SIGUSR2
 if [ $# -eq 0 ]; then exec "$0" "$HOME/Music/"; fi
 
 for each in "$@"; do
-  unset ppid
+  unset icon status message mpid ppid
   if [ -d "${each}" ] ; then
     echo "Generating Random Playlist: \"${each}\""
     find "${each}" -type f -print0 | sort -Rz | xargs -0 "$0"
